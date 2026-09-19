@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,29 +9,24 @@ namespace Test
 {
     internal class Program
     {
-        static void TestingPoint(Point point)
-        {
-            point.X = 0;
-            point.Y = 0;
-        }
-        static void TestingBox(Box box)
-        {
-            box.Width = 0;
-            box.Height = 0;
-        }
         static void Main(string[] args)
         {
-            Point p1 = new Point();
-            p1.ChangeCoords(10, 20);
-            p1.PrintPoint();
-            TestingPoint(p1);
-            p1.PrintPoint();
-
-            Box b1 = new Box();
-            b1.ChangeSize(1, 2);
-            b1.PrintBox();
-            TestingBox(b1);
-            b1.PrintBox();
+            int valu = 10;
+            Object valu2 = valu;
+            Console.WriteLine($"int: {valu}" + $"\t double: {valu2}");
+            int valu3 = (int)valu2;
+            Console.WriteLine($"int2: {valu3}");
+            try
+            {
+                int value = 10;
+                Object value2 = value;
+                Console.WriteLine($"int: {value}" + $"\t double: {value2}");
+                double value3 = (double)value2;
+                Console.WriteLine($"double2: {value3}");
+            } catch
+            {
+                Console.WriteLine("error");
+            }
         }
     }
 }
