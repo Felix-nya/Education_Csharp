@@ -11,21 +11,16 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            int valu = 10;
-            Object valu2 = valu;
-            Console.WriteLine($"int: {valu}" + $"\t double: {valu2}");
-            int valu3 = (int)valu2;
-            Console.WriteLine($"int2: {valu3}");
-            try
+            object[] items = { 1, "hello", 3.14, true, null };
+            foreach (object item in items) 
             {
-                int value = 10;
-                Object value2 = value;
-                Console.WriteLine($"int: {value}" + $"\t double: {value2}");
-                double value3 = (double)value2;
-                Console.WriteLine($"double2: {value3}");
-            } catch
-            {
-                Console.WriteLine("error");
+                if (item is string) Console.WriteLine($"string: {item}");
+                if (item is int) Console.WriteLine($"int: {item}");
+                if (item is float) Console.WriteLine($"float: {item}");
+                if (item is double) Console.WriteLine($"double: {item}");
+                if (item is decimal) Console.WriteLine($"decimal: {item}");
+                if (item is bool) Console.WriteLine($"bool: {item}");
+                if (item is null) Console.WriteLine("null item");
             }
         }
     }
