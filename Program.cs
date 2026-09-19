@@ -9,19 +9,59 @@ namespace Test
 {
     internal class Program
     {
+        internal class Animal
+        {
+            protected string _name;
+            internal Animal(string name) { _name = name; }
+            internal virtual void MakeSound()
+            {
+                Console.WriteLine($"{_name} says eye");
+            }
+        }
+        internal class Dog: Animal
+        {
+            internal Dog(string name): base(name) { }
+            internal override void MakeSound() 
+            {
+                Console.WriteLine($"{_name} says gaff");
+            }
+        }
+        internal class Cat : Animal
+        {
+            internal Cat(string name) : base(name) { }
+            internal override void MakeSound()
+            {
+                Console.WriteLine($"{_name} says meow");
+            }
+        }
+        internal static void Describe(Animal a)
+        {
+            Dog doggy = a as Dog;
+            Cat kitten = a as Cat;
+            if (doggy != null)
+            {
+                Console.WriteLine("It`s Doggy");
+                doggy.MakeSound();
+            }
+            else if (kitten != null)
+            {
+                Console.WriteLine("It`s Kitten");
+                kitten.MakeSound();
+            }
+            else
+            {
+                Console.WriteLine("I don`t now :(");
+                a.MakeSound();
+            }
+        }
         static void Main(string[] args)
         {
-            object[] items = { 1, "hello", 3.14, true, null };
-            foreach (object item in items) 
-            {
-                if (item is string) Console.WriteLine($"string: {item}");
-                if (item is int) Console.WriteLine($"int: {item}");
-                if (item is float) Console.WriteLine($"float: {item}");
-                if (item is double) Console.WriteLine($"double: {item}");
-                if (item is decimal) Console.WriteLine($"decimal: {item}");
-                if (item is bool) Console.WriteLine($"bool: {item}");
-                if (item is null) Console.WriteLine("null item");
-            }
+            Animal rex = new Dog("Rex");
+            Animal mysia = new Cat("Mysia");
+            Animal bird = new Animal("Bird");
+            Describe(rex);
+            Describe(mysia);
+            Describe(bird);
         }
     }
 }
