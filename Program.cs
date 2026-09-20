@@ -9,59 +9,22 @@ namespace Test
 {
     internal class Program
     {
-        internal class Animal
+        internal struct Money
         {
-            protected string _name;
-            internal Animal(string name) { _name = name; }
-            internal virtual void MakeSound()
+            private decimal Amount;
+            private string Currency;
+            private const int DecimalPlaces = 2;
+            static readonly Money Zero;
+            internal Money(decimal amount, string currency)
             {
-                Console.WriteLine($"{_name} says eye");
+                Amount = amount;
+                Currency = currency;
             }
-        }
-        internal class Dog: Animal
-        {
-            internal Dog(string name): base(name) { }
-            internal override void MakeSound() 
+            public static Money operator +(Money a, Money b) => new(a.Amount + b.Amount, a.Currency);
+            static void Main(string[] args)
             {
-                Console.WriteLine($"{_name} says gaff");
+
             }
-        }
-        internal class Cat : Animal
-        {
-            internal Cat(string name) : base(name) { }
-            internal override void MakeSound()
-            {
-                Console.WriteLine($"{_name} says meow");
-            }
-        }
-        internal static void Describe(Animal a)
-        {
-            Dog doggy = a as Dog;
-            Cat kitten = a as Cat;
-            if (doggy != null)
-            {
-                Console.WriteLine("It`s Doggy");
-                doggy.MakeSound();
-            }
-            else if (kitten != null)
-            {
-                Console.WriteLine("It`s Kitten");
-                kitten.MakeSound();
-            }
-            else
-            {
-                Console.WriteLine("I don`t now :(");
-                a.MakeSound();
-            }
-        }
-        static void Main(string[] args)
-        {
-            Animal rex = new Dog("Rex");
-            Animal mysia = new Cat("Mysia");
-            Animal bird = new Animal("Bird");
-            Describe(rex);
-            Describe(mysia);
-            Describe(bird);
         }
     }
 }
