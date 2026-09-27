@@ -1,59 +1,138 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Test
 {
-    internal class Program
+    class Program
     {
-        internal struct Money
+        internal static void Test1()
         {
-            public decimal Amount { get; }
-            public string Currency { get; }
-            private const int DecimalPlaces = 2;
-            public static readonly Money Zero = default;
-            internal Money(decimal amount, string currency)
+            String a = Console.ReadLine();
+            String b = Console.ReadLine();
+            String c = Console.ReadLine();
+            try
             {
-                Amount = Math.Round(amount, DecimalPlaces);
-                Currency = currency;
+                var A = Double.Parse(a);
+                var B = Double.Parse(b);
+                var C = Double.Parse(c);
+                if (A < 0 || B < 0 || C < 0)
+                {
+                    Console.WriteLine("Введено отрицательное число");
+                }
+                else if (A * A + B * B < C * C || A * A + C * C < B * B || B * B + C * C < A * A)
+                {
+                    Console.WriteLine("Введен не треугольник");
+                }
+                else
+                {
+                    var p = (A + B + C) / 2;
+                    Console.WriteLine(Math.Sqrt(p * (p - A) * (p - B) * (p - C)).ToString("F2"));
+                }
             }
-            public static Money operator +(Money a, Money b) => new(a.Amount + b.Amount, a.Currency);
-            public static Money operator -(Money a, Money b) => new(a.Amount - b.Amount, a.Currency);
-            public static bool operator ==(Money a, Money b) => a.Amount == b.Amount && a.Currency == b.Currency;
-            public static bool operator !=(Money a, Money b) => a.Amount != b.Amount || a.Currency != b.Currency;
-            public bool Equals(Money other) => Amount == other.Amount && Currency == other.Currency;
-            public override bool Equals(object? obj) => obj is Money other && Equals(other);
-            public override int GetHashCode() => HashCode.Combine(Amount, Currency);
-            public override string ToString() => $"{Amount.ToString("F2", CultureInfo.InvariantCulture)} {Currency}";
-            public static explicit operator decimal(Money m) => m.Amount;
-            public static Money Sum(params Money[] items)
+            catch
             {
-                if (items.Length == 0)
-                    return Zero;
-
-                Money result = items[0];
-                for (int i = 1; i < items.Length; i++)
-                    result += items[i];
-                return result;
+                Console.WriteLine("Введено не число");
             }
-            public static bool SameCurrency(in Money a, in Money b) => a.Currency == b.Currency;
+        }
+        internal static void Test2()
+        {
+            try
+            {
+                var str = Console.ReadLine();
+                int foo = int.Parse(str);
+                if (foo < 100 || foo > 999)
+                {
+                    Console.WriteLine("Введено не 3х значное число!");
+                }
+                else if (Equals(str[2], '0') && Equals(str[1], '0')) Console.WriteLine($"{str[0]}");
+                else if (Equals(str[2], '0')) Console.WriteLine($"{str[1]}{str[0]}");
+                else Console.WriteLine($"{str[2]}{str[1]}{str[0]}");
+            }
+            catch
+            {
+                Console.WriteLine("Введено не число!");
+            }
+        }
+        internal static void Test3()
+        {
+            char symbol = char.Parse(Console.ReadLine());
+            int f = 400;
+            try
+            {
+                //if (char.IsDigit(symbol)) f = 100;
+                //else if (char.IsUpper(symbol)) f = 200;
+                //else if (char.IsLower(symbol)) f = 300;
+                f = symbol switch
+                {
+                    _ when char.IsDigit(symbol) => 100,
+                    _ when char.IsUpper(symbol) => 200,
+                    _ when char.IsLower(symbol) => 300
+                };
+                Console.WriteLine($"{symbol} : {f}");
+            }
+            catch
+            {
+                Console.WriteLine($"{symbol} : {f}");
+            }
 
+        }
+        internal static void Test4()
+        {
+            string str = string.Empty;
+            int r1 = 0;
+            int r2 = 0;
+            int r3 = 0;
+            int flag = 1;
+            do
+            {
+                str = Console.ReadLine();
+                if (Equals(str, "0")) break;
+                for (int i = 0; i < str.Length; i++)
+                {
+                    if (char.IsLetter(str[i]))
+                    {
+                        flag = 3;
+                        break;
+                    }
+                    else if (Equals(str[i], '.') && flag != 2)
+                    {
+                        flag = 2;
+                    }
+                }
+                switch (flag)
+                {
+                    case 1: r1++; break;
+                    case 2: r2++; break;
+                    case 3: r3++; break;
+                }
+                flag = 1;
+            } while (!Equals(str, "0"));
+            Console.WriteLine($"Целых чисел: {r1}, Вещественных: {r2}, Нечисловых: {r3}");
+        }
+        internal static void Test5()
+        {
+            float res1 = 0;
+            double res2 = 0;
+            decimal res3 = 0;
+            for (int i = 1; i < 10000000; i++)
+            {
+                res1 += (float)(1f / (i * (i + 1) * (i + 2)));
+                res2 += (double)(1d / (i * (i + 1) * (i + 2)));
+                res3 += (decimal)(1d / (i * (i + 1) * (i + 2)));
+            }
+            Console.WriteLine($"Float: {res1}");
+            Console.WriteLine($"Double: {res2}");
+            Console.WriteLine($"Decimal: {res3}");
+        }
+        internal static void Test6()
+        {
+            string num = Console.ReadLine();
+            int k = int.Parse(Console.ReadLine());
+            if (k <= num.Length && k >= 0) Console.WriteLine(num.Substring(0, k));
+            else Console.WriteLine("Введено неверное число разрядов");
         }
         static void Main(string[] args)
         {
-            var a = new Money(10.555m, "EUR");
-            var b = new Money(5m, "EUR");
-            Console.WriteLine(a);
-            Console.WriteLine(a + b);
-            Console.WriteLine(a - b);
-            Console.WriteLine(a == new Money(10.56m, "EUR"));
-            Console.WriteLine(a != b);
-            Console.WriteLine(a.ToString());
+            Test2();
         }
     }
 }
