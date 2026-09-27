@@ -1,138 +1,151 @@
 ﻿using System;
+using System.Text;
 
 namespace Test
 {
     class Program
     {
-        internal static void Test1()
+        internal static void TestEmp()
         {
-            String a = Console.ReadLine();
-            String b = Console.ReadLine();
-            String c = Console.ReadLine();
-            try
+            Console.WriteLine($"Имя компании: {Employee.CompanyName}, дата основания: {Employee.CompanyFoundedDate}");
+            Employee[] company = { new Employee(3, "thr", 1000), new Manager(1, "fir", 10000, 50), new Developer(2, "sec", 5000, 10) };
+            foreach (Employee emp in company)
             {
-                var A = Double.Parse(a);
-                var B = Double.Parse(b);
-                var C = Double.Parse(c);
-                if (A < 0 || B < 0 || C < 0)
-                {
-                    Console.WriteLine("Введено отрицательное число");
-                }
-                else if (A * A + B * B < C * C || A * A + C * C < B * B || B * B + C * C < A * A)
-                {
-                    Console.WriteLine("Введен не треугольник");
-                }
-                else
-                {
-                    var p = (A + B + C) / 2;
-                    Console.WriteLine(Math.Sqrt(p * (p - A) * (p - B) * (p - C)).ToString("F2"));
-                }
-            }
-            catch
-            {
-                Console.WriteLine("Введено не число");
+                Console.WriteLine($"{emp.GetEmployeeInfo()}, зарплата: {emp.CalculateSalary()}");
             }
         }
-        internal static void Test2()
+        internal static void TestSmartNum()
         {
-            try
-            {
-                var str = Console.ReadLine();
-                int foo = int.Parse(str);
-                if (foo < 100 || foo > 999)
-                {
-                    Console.WriteLine("Введено не 3х значное число!");
-                }
-                else if (Equals(str[2], '0') && Equals(str[1], '0')) Console.WriteLine($"{str[0]}");
-                else if (Equals(str[2], '0')) Console.WriteLine($"{str[1]}{str[0]}");
-                else Console.WriteLine($"{str[2]}{str[1]}{str[0]}");
-            }
-            catch
-            {
-                Console.WriteLine("Введено не число!");
-            }
+            int num0 = 5;
+            double num1 = 5.1;
+            SmartNumber num2 = num0;
+            SmartNumber num3 = num1;
+            Console.WriteLine($"int: {num0}, double: {num1}, int to smartnumber: {num2}, double to smartnumber: {num3}");
+            Console.WriteLine($"+: {num2 + num3}");
+            Console.WriteLine($"-: {num2 - num3}");
+            Console.WriteLine($"*: {num2 * num3}");
+            Console.WriteLine($"/: {num2 / num3}");
+            int num4 = (int)num2;
+            double num5 = (double)num3;
+            Console.WriteLine($"int to smartnumber: {num4}, double to smartnumber: {num5}");
+            num2 = (SmartNumber)"5,5";
+            string str1 = num3.ToString();
+            Console.WriteLine($"string to smartNumber: {num2}, ToString: {str1}");
+            string str2 = num3;
+            Console.WriteLine($"smartnumber to string: {str2}");
+            Console.WriteLine($"num2 == num3: {num2 == num3}");
+            Console.WriteLine($"Equals: {num2.Equals(num3)}");
         }
-        internal static void Test3()
+        internal static void TestMathExt()
         {
-            char symbol = char.Parse(Console.ReadLine());
-            int f = 400;
-            try
+            int[] numbers = { 2, 4, 4, 4, 5, 5, 7, 9 };
+            Console.WriteLine($"Стандартное отклонение генеральная совокупность: {numbers.StandartDeviation()}");
+            Console.WriteLine($"Стандартное отклонение выборочная дисперсия: {numbers.StandartDeviation(useSampleVariance: true)}");
+
+            double radius = 5.0;
+            if (MathExtensions.TryCalculateCircle(in radius, out double square, out double length))
             {
-                //if (char.IsDigit(symbol)) f = 100;
-                //else if (char.IsUpper(symbol)) f = 200;
-                //else if (char.IsLower(symbol)) f = 300;
-                f = symbol switch
-                {
-                    _ when char.IsDigit(symbol) => 100,
-                    _ when char.IsUpper(symbol) => 200,
-                    _ when char.IsLower(symbol) => 300
-                };
-                Console.WriteLine($"{symbol} : {f}");
-            }
-            catch
-            {
-                Console.WriteLine($"{symbol} : {f}");
+                Console.WriteLine($"Радиус: {radius}, площадь: {square:F2}, длина окружности: {length:F2}");
             }
 
+            int x = 10, y = 20;
+            Console.WriteLine($"До обмена: x = {x}, y = {y}");
+            MathExtensions.SwapValues(ref x, ref y);
+            Console.WriteLine($"После обмена: x = {x}, y = {y}");
+
+            string formDefault = MathExtensions.FormatNumbers(numbers: [1.2345, 6.789, 10]);
+            string formCustom = MathExtensions.FormatNumbers("F0", 1.2345, 6.789, 10);
+            Console.WriteLine($"Форматирование F2: {formDefault}");
+            Console.WriteLine($"Форматирование F0: {formCustom}");
+
+            decimal yearly = MathExtensions.CalculateInvestment(principal: 100, rate: 10, years: 3, compoundMonthly: false);
+            decimal monthly = MathExtensions.CalculateInvestment(principal: 100, rate: 10, years: 3);
+            Console.WriteLine($"Инвестиция false: {yearly:F2}");
+            Console.WriteLine($"Инвестиция true: {monthly:F2}");
         }
-        internal static void Test4()
+        internal static void TestMans()
         {
-            string str = string.Empty;
-            int r1 = 0;
-            int r2 = 0;
-            int r3 = 0;
-            int flag = 1;
-            do
+            Man[] mas = { new Teenager("Петя","Лицей 4",15), new Worker("Петрович", "ВТБ", 25),
+                new Worker("Геннадий","Дом",17), new Teenager("Максим","Школа 7",14) };
+            foreach (var person in mas) person.Describe();
+            foreach (var person in mas)
             {
-                str = Console.ReadLine();
-                if (Equals(str, "0")) break;
-                for (int i = 0; i < str.Length; i++)
+                Random rand = new();
+                try
                 {
-                    if (char.IsLetter(str[i]))
-                    {
-                        flag = 3;
-                        break;
-                    }
-                    else if (Equals(str[i], '.') && flag != 2)
-                    {
-                        flag = 2;
-                    }
+                    person.SetAge(rand.Next(10, 80));
+                    person.Describe();
                 }
-                switch (flag)
+                catch (ArgumentException ex)
                 {
-                    case 1: r1++; break;
-                    case 2: r2++; break;
-                    case 3: r3++; break;
+                    Console.WriteLine(ex.Message);
                 }
-                flag = 1;
-            } while (!Equals(str, "0"));
-            Console.WriteLine($"Целых чисел: {r1}, Вещественных: {r2}, Нечисловых: {r3}");
-        }
-        internal static void Test5()
-        {
-            float res1 = 0;
-            double res2 = 0;
-            decimal res3 = 0;
-            for (int i = 1; i < 10000000; i++)
-            {
-                res1 += (float)(1f / (i * (i + 1) * (i + 2)));
-                res2 += (double)(1d / (i * (i + 1) * (i + 2)));
-                res3 += (decimal)(1d / (i * (i + 1) * (i + 2)));
             }
-            Console.WriteLine($"Float: {res1}");
-            Console.WriteLine($"Double: {res2}");
-            Console.WriteLine($"Decimal: {res3}");
         }
-        internal static void Test6()
+        internal static void TestLongNumber()
         {
-            string num = Console.ReadLine();
-            int k = int.Parse(Console.ReadLine());
-            if (k <= num.Length && k >= 0) Console.WriteLine(num.Substring(0, k));
-            else Console.WriteLine("Введено неверное число разрядов");
+            LongNumber num1 = new(1111111);
+            LongNumber num2 = new(num1);
+            Console.WriteLine($"num1: {num1}, num2: {num2}");
+            Console.WriteLine($"+: {num1 + num2}");
+            Console.WriteLine($"-: {num1 - num2}");
+            Console.WriteLine($"*: {num1 * num2}");
+            Console.WriteLine($"/: {num1 / num2}");
+            Console.WriteLine($"num1 == num2: {num1 == num2}");
+            Console.WriteLine($"num1 != num2: {num1 != num2}");
+            Console.WriteLine($"Equals: {num1.Equals(num2)}");
+            int num3 = (int)num1;
+            bool num4 = (bool)num2;
+            LongNumber num5 = (LongNumber)num3;
+            LongNumber num6 = (LongNumber)num4;
+            Console.WriteLine($"LongNumber to int: {num3}, LongNumber to Bool: {num4}");
+            Console.WriteLine($"int to LongNumber: {num5}, Bool to LongNumber: {num6}");
+            string str1 = "123456789";
+            StringBuilder sb1 = new StringBuilder("123987456");
+            if (LongNumber.TryParse(str1, out num1)) Console.WriteLine($"TryParse str1: {str1} to num1: {num1}");
+            LongNumber num7 = str1.ToLongNumber();
+            LongNumber num8 = sb1.ToLongNumber();
+            Console.WriteLine($"Extension: string: {str1} to longNumber: {num7}, stringBuilder: {sb1} to LongNumber: {num8}");
+        }
+        internal static void TestNode()
+        {
+            Node d = new Node("d");
+            Node c = new Node("c"); c.Children.Add(d);
+            Node f = new Node("f");
+            Node e = new Node("e"); e.Children.Add(f);
+            Node h = new Node("h"), iN = new Node("i");
+            Node g = new Node("g"); g.Children.Add(h, iN);
+            Node b = new Node("b"); b.Children.Add(c, e, g);
+            Node l = new Node("l");
+            Node k = new Node("k"); k.Children.Add(l);
+            Node m = new Node("m");
+            Node j = new Node("j"); j.Children.Add(k, m);
+            Node a = new Node("a"); a.Children.Add(b, j);
+
+            Console.WriteLine(a);
+
+            a.Children.AddDefault();
+            Console.WriteLine($"Узлов у 'a': {a.Children.Count}, последний Text = \"{a.Children[a.Children.Count - 1].Text}\"");
+
+            Node outNode = new Node("было");
+            b.Children.TryGet(99, out outNode);
+            Console.WriteLine("out при неверном индексе: " + (outNode == null ? "null" : outNode.Text));
+
+            Node refNode = new Node("было");
+            b.Children.TryGetRef(99, ref refNode);
+            Console.WriteLine("ref при неверном индексе: " + refNode.Text);
+
+            Console.WriteLine(a);
         }
         static void Main(string[] args)
         {
-            Test2();
+            //TestEmp();
+            //TestSmartNum();
+            //TestMathExt();
+            //TestMans();
+            //TestLongNumber();
+            TestNode();
+            Console.ReadKey();
         }
     }
 }
