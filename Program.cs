@@ -5,146 +5,141 @@ namespace Test
 {
     class Program
     {
-        internal static void TestEmp()
+        internal static void TestBank()
         {
-            Console.WriteLine($"Имя компании: {Employee.CompanyName}, дата основания: {Employee.CompanyFoundedDate}");
-            Employee[] company = { new Employee(3, "thr", 1000), new Manager(1, "fir", 10000, 50), new Developer(2, "sec", 5000, 10) };
-            foreach (Employee emp in company)
+            BankAccount MyBank = new();
+            MyBank.Deposit(500);
+            Console.WriteLine(MyBank.Balance);
+            MyBank.Withdraw(150);
+            Console.WriteLine(MyBank.Balance);
+        }
+        internal static void TestUser()
+        {
+            User _user = new();
+            _user.Email = "ra@gmail.ru";
+            _user.Age = 30;
+            Console.WriteLine($"{_user.Email}, {_user.Age}");
+            try
             {
-                Console.WriteLine($"{emp.GetEmployeeInfo()}, зарплата: {emp.CalculateSalary()}");
+                _user.Age = 250;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
-        internal static void TestSmartNum()
+        internal static void TestRectangle()
         {
-            int num0 = 5;
-            double num1 = 5.1;
-            SmartNumber num2 = num0;
-            SmartNumber num3 = num1;
-            Console.WriteLine($"int: {num0}, double: {num1}, int to smartnumber: {num2}, double to smartnumber: {num3}");
-            Console.WriteLine($"+: {num2 + num3}");
-            Console.WriteLine($"-: {num2 - num3}");
-            Console.WriteLine($"*: {num2 * num3}");
-            Console.WriteLine($"/: {num2 / num3}");
-            int num4 = (int)num2;
-            double num5 = (double)num3;
-            Console.WriteLine($"int to smartnumber: {num4}, double to smartnumber: {num5}");
-            num2 = (SmartNumber)"5,5";
-            string str1 = num3.ToString();
-            Console.WriteLine($"string to smartNumber: {num2}, ToString: {str1}");
-            string str2 = num3;
-            Console.WriteLine($"smartnumber to string: {str2}");
-            Console.WriteLine($"num2 == num3: {num2 == num3}");
-            Console.WriteLine($"Equals: {num2.Equals(num3)}");
+            Rectangle rect = new() { Width = 10, Height = 10 };
+            Console.WriteLine(rect.Area);
         }
-        internal static void TestMathExt()
+        internal static void TestSimpleArray()
         {
-            int[] numbers = { 2, 4, 4, 4, 5, 5, 7, 9 };
-            Console.WriteLine($"Стандартное отклонение генеральная совокупность: {numbers.StandartDeviation()}");
-            Console.WriteLine($"Стандартное отклонение выборочная дисперсия: {numbers.StandartDeviation(useSampleVariance: true)}");
-
-            double radius = 5.0;
-            if (MathExtensions.TryCalculateCircle(in radius, out double square, out double length))
+            SimpleIntArray arr = new();
+            arr[1] = 5;
+            for (int i = 0; i < 10; i++) Console.WriteLine(arr[i]);
+            try
             {
-                Console.WriteLine($"Радиус: {radius}, площадь: {square:F2}, длина окружности: {length:F2}");
+                arr[11] = 1;
             }
-
-            int x = 10, y = 20;
-            Console.WriteLine($"До обмена: x = {x}, y = {y}");
-            MathExtensions.SwapValues(ref x, ref y);
-            Console.WriteLine($"После обмена: x = {x}, y = {y}");
-
-            string formDefault = MathExtensions.FormatNumbers(numbers: [1.2345, 6.789, 10]);
-            string formCustom = MathExtensions.FormatNumbers("F0", 1.2345, 6.789, 10);
-            Console.WriteLine($"Форматирование F2: {formDefault}");
-            Console.WriteLine($"Форматирование F0: {formCustom}");
-
-            decimal yearly = MathExtensions.CalculateInvestment(principal: 100, rate: 10, years: 3, compoundMonthly: false);
-            decimal monthly = MathExtensions.CalculateInvestment(principal: 100, rate: 10, years: 3);
-            Console.WriteLine($"Инвестиция false: {yearly:F2}");
-            Console.WriteLine($"Инвестиция true: {monthly:F2}");
-        }
-        internal static void TestMans()
-        {
-            Man[] mas = { new Teenager("Петя","Лицей 4",15), new Worker("Петрович", "ВТБ", 25),
-                new Worker("Геннадий","Дом",17), new Teenager("Максим","Школа 7",14) };
-            foreach (var person in mas) person.Describe();
-            foreach (var person in mas)
+            catch (Exception ex)
             {
-                Random rand = new();
-                try
+                Console.WriteLine(ex.Message);
+            }
+        }
+        internal static void TestSmartTimer()
+        {
+            SmartTimer timer = new();
+            timer.Seconds = 3665;
+            Console.WriteLine($"Секунды: {timer.Seconds} Минуты: {timer.Minutes} Часы: {timer.Hours}");
+        }
+        internal static void TestEnums()
+        {
+            Random rand = new();
+            Order ord1 = new() { Id = 0, ProductName = "Курица", Status = (OrderStatus)rand.Next(0, 4) };
+            Order ord2 = new() { Id = 1, ProductName = "Грелка", Status = (OrderStatus)rand.Next(0, 4) };
+            Order ord3 = new() { Id = 2, ProductName = "Свинина", Status = (OrderStatus)rand.Next(0, 4) };
+            Order ord4 = new() { Id = 3, ProductName = "Комод", Status = (OrderStatus)rand.Next(0, 4) };
+            Order ord5 = new() { Id = 4, ProductName = "Диван", Status = (OrderStatus)rand.Next(0, 4) };
+            Order[] ords = { ord1, ord2, ord3, ord4, ord5 };
+            foreach (Order ord in ords)
+            {
+                switch (ord.Status)
                 {
-                    person.SetAge(rand.Next(10, 80));
-                    person.Describe();
-                }
-                catch (ArgumentException ex)
-                {
-                    Console.WriteLine(ex.Message);
+                    case OrderStatus.New:
+                        Console.WriteLine(ord.CanCancelOrder());
+                        ord.DisplayOrderInfo();
+                        break;
+                    case OrderStatus.Processing:
+                        Console.WriteLine(ord.CanCancelOrder());
+                        ord.DisplayOrderInfo();
+                        break;
+                    case OrderStatus.Shipped:
+                        ord.DisplayOrderInfo();
+                        break;
+                    case OrderStatus.Delivered:
+                        Console.WriteLine(ord.CanCancelOrder());
+                        ord.DisplayOrderInfo();
+                        break;
+                    case OrderStatus.Cancelled:
+                        ord.DisplayOrderInfo();
+                        break;
+                    default:
+                        break;
                 }
             }
+
+            USER user1 = new() { Name = "Oleg", Permissions = UserPermissions.ReadWriteDeleteExecute };
+            USER user2 = new() { Name = "Vasa", Permissions = UserPermissions.Read };
+            USER user3 = new() { Name = "Gaga", Permissions = UserPermissions.ReadWriteDelete };
+            Console.WriteLine($"{user1.Name}: {user1.Permissions}, {user2.Name}: {user2.Permissions}, {user3.Name}: {user3.Permissions}");
+            user2.AddPermission(UserPermissions.Write);
+            user3.RemovePermission(UserPermissions.Delete);
+            Console.WriteLine($"{user1.Name}: {user1.Permissions}, {user2.Name}: {user2.Permissions}, {user3.Name}: {user3.Permissions}");
+
+            TextCommand com = TextCommand.Stop;
+            ExecuteCommand(com);
+            ExecuteCommand(ParseCommand("StArT"));
+
+            Notification sms = new("Hi", NotificationType.SMS, Priority.Low);
+            Notification email = Notification.CreateUrgentNotification("Important", NotificationType.Email);
+            if (sms.CanSend()) sms.Send();
+            email.Send();
+            Notification Alll = new("spam", NotificationType.ALL, Priority.Medium);
+            Notification empties = new(string.Empty, NotificationType.Push, Priority.Medium);
+            Alll.Send();
+            empties.Send();
         }
-        internal static void TestLongNumber()
+        internal static TextCommand ParseCommand(string input)
         {
-            LongNumber num1 = new(1111111);
-            LongNumber num2 = new(num1);
-            Console.WriteLine($"num1: {num1}, num2: {num2}");
-            Console.WriteLine($"+: {num1 + num2}");
-            Console.WriteLine($"-: {num1 - num2}");
-            Console.WriteLine($"*: {num1 * num2}");
-            Console.WriteLine($"/: {num1 / num2}");
-            Console.WriteLine($"num1 == num2: {num1 == num2}");
-            Console.WriteLine($"num1 != num2: {num1 != num2}");
-            Console.WriteLine($"Equals: {num1.Equals(num2)}");
-            int num3 = (int)num1;
-            bool num4 = (bool)num2;
-            LongNumber num5 = (LongNumber)num3;
-            LongNumber num6 = (LongNumber)num4;
-            Console.WriteLine($"LongNumber to int: {num3}, LongNumber to Bool: {num4}");
-            Console.WriteLine($"int to LongNumber: {num5}, Bool to LongNumber: {num6}");
-            string str1 = "123456789";
-            StringBuilder sb1 = new StringBuilder("123987456");
-            if (LongNumber.TryParse(str1, out num1)) Console.WriteLine($"TryParse str1: {str1} to num1: {num1}");
-            LongNumber num7 = str1.ToLongNumber();
-            LongNumber num8 = sb1.ToLongNumber();
-            Console.WriteLine($"Extension: string: {str1} to longNumber: {num7}, stringBuilder: {sb1} to LongNumber: {num8}");
+            if (Enum.TryParse(input.Trim(), true, out TextCommand result)) return result;
+            return TextCommand.Unknown;
         }
-        internal static void TestNode()
+        internal static void ExecuteCommand(TextCommand com)
         {
-            Node d = new Node("d");
-            Node c = new Node("c"); c.Children.Add(d);
-            Node f = new Node("f");
-            Node e = new Node("e"); e.Children.Add(f);
-            Node h = new Node("h"), iN = new Node("i");
-            Node g = new Node("g"); g.Children.Add(h, iN);
-            Node b = new Node("b"); b.Children.Add(c, e, g);
-            Node l = new Node("l");
-            Node k = new Node("k"); k.Children.Add(l);
-            Node m = new Node("m");
-            Node j = new Node("j"); j.Children.Add(k, m);
-            Node a = new Node("a"); a.Children.Add(b, j);
-
-            Console.WriteLine(a);
-
-            a.Children.AddDefault();
-            Console.WriteLine($"Узлов у 'a': {a.Children.Count}, последний Text = \"{a.Children[a.Children.Count - 1].Text}\"");
-
-            Node outNode = new Node("было");
-            b.Children.TryGet(99, out outNode);
-            Console.WriteLine("out при неверном индексе: " + (outNode == null ? "null" : outNode.Text));
-
-            Node refNode = new Node("было");
-            b.Children.TryGetRef(99, ref refNode);
-            Console.WriteLine("ref при неверном индексе: " + refNode.Text);
-
-            Console.WriteLine(a);
+            switch (com)
+            {
+                case TextCommand.Unknown:
+                case TextCommand.Start:
+                case TextCommand.Stop:
+                case TextCommand.Pause:
+                case TextCommand.Resume:
+                    Console.WriteLine($"Выполняется команда {com}");
+                    break;
+                default:
+                    break;
+            }
         }
         static void Main(string[] args)
         {
-            //TestEmp();
-            //TestSmartNum();
-            //TestMathExt();
-            //TestMans();
-            //TestLongNumber();
-            TestNode();
+
+            //TestBank();
+            //TestUser();
+            //TestRectangle();
+            //TestSimpleArray();
+            //TestSmartTimer();
+
+            TestEnums();
             Console.ReadKey();
         }
     }
