@@ -1,145 +1,326 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Test
 {
-    class Program
+    internal class Animal : IComparable<Animal>
     {
-        internal static void TestBank()
+        internal string? Name { get; set; }
+        internal int Age { get; set; }
+
+        public int CompareTo(Animal? other) => other.Age > Age ? -1 : 1;
+
+        internal void Print() => Console.WriteLine($"{Name,-10}{Age}");
+    }
+    internal class AnimalNameComparer : IComparer<Animal>
+    {
+        public int Compare(Animal? x, Animal? y)
         {
-            BankAccount MyBank = new();
-            MyBank.Deposit(500);
-            Console.WriteLine(MyBank.Balance);
-            MyBank.Withdraw(150);
-            Console.WriteLine(MyBank.Balance);
+            return string.CompareOrdinal(x.Name, y.Name);
         }
-        internal static void TestUser()
+    }
+
+    internal class AnimalList : IEnumerable<Animal>
+    {
+        private List<Animal> _list = new();
+
+        internal void Add(Animal a) => _list.Add(a);
+        public IEnumerator<Animal> GetEnumerator() => new AnimalEnumerator(_list);
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            User _user = new();
-            _user.Email = "ra@gmail.ru";
-            _user.Age = 30;
-            Console.WriteLine($"{_user.Email}, {_user.Age}");
+            return GetEnumerator();
+        }
+    }
+    internal class AnimalEnumerator : IEnumerator<Animal>
+    {
+        private List<Animal> _list;
+        private int _index = -1;
+        internal AnimalEnumerator(List<Animal> l) { _list = l; }
+        public Animal Current => _list[_index];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+
+        public bool MoveNext()
+        {
+            _index++;
+            return _index < _list.Count;
+        }
+
+        public void Reset() => _index = -1;
+    }
+    internal class RandomNumbersCollection : IEnumerable<int>
+    {
+        private readonly Random _random = new();
+
+        public IEnumerator<int> GetEnumerator()
+        {
+            while (true) yield return _random.Next(1, 101);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    internal interface ILogger
+    {
+        void Log(string? message);
+        void LogInfo(string? message) => Log("[INFO] " + (message ?? "Внимание: пустое сообщение"));
+        void LogWarning(string? message) => Log("[WARN] " + (message ?? "Внимание: пустое сообщение"));
+        void LogError(string? message) => Log("[ERROR] " + (message ?? "Внимание: пустое сообщение"));
+    }
+    internal interface ITimestampedLogger : ILogger
+    {
+        void LogWithTimestamp(string? message) => Log($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message ?? "Внимание: пустое сообщение"}");
+    }
+    internal class ConsoleLogger : ILogger
+    {
+        public void Log(string? message)
+        {
+            Console.WriteLine(message);
+        }
+        void ILogger.LogInfo(string? message)
+        {
+            Log("CONSOLE INFO: " + message);
+        }
+    }
+    internal class FileLogger : ILogger
+    {
+        private readonly List<string?> _fileContent = [];
+
+        public void Log(string? message)
+        {
+            _fileContent.Add(message);
+            Console.WriteLine($"[записано в файл] {message}");
+        }
+    }
+    internal class TimestampedFileLogger : ITimestampedLogger
+    {
+        private readonly List<string?> _fileContent = [];
+        public void Log(string? message)
+        {
+            _fileContent.Add(message);
+            Console.WriteLine($"[записано в файл] {message}");
+        }
+    }
+
+    internal interface ICache<TKey, TValue>
+    {
+        void Set(TKey key, TValue value);
+        TValue Get(TKey key);
+        void Remove(TKey key);
+    }
+    internal class FifoCache<TKey, TValue> : ICache<TKey, TValue> where TKey : notnull
+    {
+        private Dictionary<TKey, TValue> _cache = [];
+        private Queue<TKey> _queue = new();
+        private readonly int _capacity;
+
+        public FifoCache(int capacity)
+        {
+            if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity), "Емкость должна быть больше 0");
+            _capacity = capacity;
+        }
+        public TValue Get(TKey key)
+        {
+            if (_cache.TryGetValue(key, out var value)) return value;
+            throw new KeyNotFoundException($"Ключ '{key}' отсутствует в кэше");
+        }
+
+        public void Remove(TKey key)
+        {
+            if (!_cache.Remove(key)) return;
+            _queue = new Queue<TKey>(_queue.Where(k => !EqualityComparer<TKey>.Default.Equals(k, key)));
+        }
+
+        public void Set(TKey key, TValue value)
+        {
+            if (_cache.ContainsKey(key))
+            {
+                _cache[key] = value;
+                return;
+            }
+            _cache[key] = value;
+            _queue.Enqueue(key);
+            if (_cache.Count > _capacity)
+            {
+                TKey oldest = _queue.Dequeue();
+                _cache.Remove(oldest);
+            }
+        }
+    }
+
+    internal class LruCache<TKey, TValue> : ICache<TKey, TValue> where TKey : notnull
+    {
+        private readonly Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>> _cache = [];
+        private readonly LinkedList<KeyValuePair<TKey, TValue>> _list = new();
+        private readonly int _capacity;
+        public LruCache(int capacity)
+        {
+            if (capacity <= 0) throw new ArgumentOutOfRangeException(nameof(capacity), "Емкость должна быть больше 0");
+            _capacity = capacity;
+        }
+
+        public TValue Get(TKey key)
+        {
+            if (!_cache.TryGetValue(key, out var node)) throw new KeyNotFoundException($"Ключ '{key}' отсутствует в кэше");
+            MoveToFront(node);
+            return node.Value.Value;
+        }
+
+        public void Set(TKey key, TValue value)
+        {
+            if (_cache.TryGetValue(key, out var existing))
+            {
+                existing.Value = new KeyValuePair<TKey, TValue>(key, value);
+                MoveToFront(existing);
+                return;
+            }
+
+            var node = _list.AddFirst(new KeyValuePair<TKey, TValue>(key, value));
+            _cache[key] = node;
+
+            if (_cache.Count > _capacity)
+            {
+                var last = _list.Last!;
+                _list.RemoveLast();
+                _cache.Remove(last.Value.Key);
+            }
+        }
+
+        public void Remove(TKey key)
+        {
+            if (_cache.Remove(key, out var node)) _list.Remove(node);
+        }
+
+        private void MoveToFront(LinkedListNode<KeyValuePair<TKey, TValue>> node)
+        {
+            if (node == _list.First) return;
+            _list.Remove(node);
+            _list.AddFirst(node);
+        }
+    }
+
+    internal class Program
+    {
+        private static void AnimalTest()
+        {
+            List<Animal> animals = new()
+            {
+                new(){Name = "Cat", Age = 15},
+                new(){Name = "Dog", Age = 3},
+                new(){Name = "Bird", Age = 2},
+                new(){Name = "Shark", Age = 5},
+                new(){Name = "Wolf", Age = 4},
+                new(){Name = "Alien", Age = 95}
+            };
+            animals.Sort(); //Метод Sort не знает как сравнивать объекты Animal.
+            foreach (var animal in animals) animal.Print();
+            Console.WriteLine();
+            animals.Sort(new AnimalNameComparer());
+            foreach (var animal in animals) animal.Print();
+            Console.WriteLine();
+        }
+        private static void EnumeratorTest()
+        {
+            AnimalList animals = new();
+            animals.Add(new() { Name = "Cat", Age = 15 });
+            animals.Add(new() { Name = "Dog", Age = 3 });
+            animals.Add(new() { Name = "Bird", Age = 2 });
+            animals.Add(new() { Name = "Shark", Age = 5 });
+            animals.Add(new() { Name = "Wolf", Age = 4 });
+            animals.Add(new() { Name = "Alien", Age = 95 });
+            foreach (var animal in animals) animal.Print();
+            Console.WriteLine();
+
+            RandomNumbersCollection ints = new();
+            //foreach(var i in ints) Console.WriteLine(i);
+            IEnumerator<int> enumerator = ints.GetEnumerator();
+            for (int i = 0; i < 10; i++)
+            {
+                Console.WriteLine(enumerator.Current);
+                enumerator.MoveNext();
+            }
+        }
+        private static void LoggerTest()
+        {
+            ILogger console = new ConsoleLogger();
+            console.LogInfo("Запуск программы");
+            console.LogWarning("Мало памяти");
+            console.LogError(null);
+
+            ILogger file = new FileLogger();
+            file.LogInfo("Сохранение данных");
+            file.LogError("Файл не найден");
+
+            ITimestampedLogger ts = new TimestampedFileLogger();
+            ts.LogWithTimestamp("Событие произошло");
+            ts.LogInfo("Обычный info");
+            ts.LogWithTimestamp(null);
+        }
+        private static void FIFOTest()
+        {
             try
             {
-                _user.Age = 250;
+                // Код из примера на изображении
+                var cache = new FifoCache<string, int>(3);
+                cache.Set("one", 1);
+                cache.Set("two", 2);
+                cache.Set("three", 3);
+                Console.WriteLine(cache.Get("one")); // Выведет 1
+                cache.Set("four", 4); // Удалит "one" (самый старый)
+                Console.WriteLine(cache.Get("one")); // Выбросит исключение
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Перехвачено ожидаемое исключение: {ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"Непредвиденная ошибка: {ex.Message}");
             }
         }
-        internal static void TestRectangle()
+        private static void LruTest()
         {
-            Rectangle rect = new() { Width = 10, Height = 10 };
-            Console.WriteLine(rect.Area);
-        }
-        internal static void TestSimpleArray()
-        {
-            SimpleIntArray arr = new();
-            arr[1] = 5;
-            for (int i = 0; i < 10; i++) Console.WriteLine(arr[i]);
-            try
+            ICache<int, string> fifo = new FifoCache<int, string>(3);
+            ICache<int, string> lru = new LruCache<int, string>(3);
+
+            foreach (var cache in new[] { fifo, lru })
             {
-                arr[11] = 1;
+                cache.Set(1, "one");
+                cache.Set(2, "two");
+                cache.Set(3, "three");
+                cache.Get(1);
+                cache.Set(4, "four");
             }
-            catch (Exception ex)
+
+            Console.Write($"FIFO: ");
+            for (int key = 1; key <= 4; key++)
             {
-                Console.WriteLine(ex.Message);
+                try { fifo.Get(key); Console.Write($"{key}=есть  "); }
+                catch (KeyNotFoundException) { Console.Write($"{key}=нет  "); }
             }
-        }
-        internal static void TestSmartTimer()
-        {
-            SmartTimer timer = new();
-            timer.Seconds = 3665;
-            Console.WriteLine($"Секунды: {timer.Seconds} Минуты: {timer.Minutes} Часы: {timer.Hours}");
-        }
-        internal static void TestEnums()
-        {
-            Random rand = new();
-            Order ord1 = new() { Id = 0, ProductName = "Курица", Status = (OrderStatus)rand.Next(0, 4) };
-            Order ord2 = new() { Id = 1, ProductName = "Грелка", Status = (OrderStatus)rand.Next(0, 4) };
-            Order ord3 = new() { Id = 2, ProductName = "Свинина", Status = (OrderStatus)rand.Next(0, 4) };
-            Order ord4 = new() { Id = 3, ProductName = "Комод", Status = (OrderStatus)rand.Next(0, 4) };
-            Order ord5 = new() { Id = 4, ProductName = "Диван", Status = (OrderStatus)rand.Next(0, 4) };
-            Order[] ords = { ord1, ord2, ord3, ord4, ord5 };
-            foreach (Order ord in ords)
+            Console.WriteLine();
+            Console.Write($"LRU: ");
+            for (int key = 1; key <= 4; key++)
             {
-                switch (ord.Status)
-                {
-                    case OrderStatus.New:
-                        Console.WriteLine(ord.CanCancelOrder());
-                        ord.DisplayOrderInfo();
-                        break;
-                    case OrderStatus.Processing:
-                        Console.WriteLine(ord.CanCancelOrder());
-                        ord.DisplayOrderInfo();
-                        break;
-                    case OrderStatus.Shipped:
-                        ord.DisplayOrderInfo();
-                        break;
-                    case OrderStatus.Delivered:
-                        Console.WriteLine(ord.CanCancelOrder());
-                        ord.DisplayOrderInfo();
-                        break;
-                    case OrderStatus.Cancelled:
-                        ord.DisplayOrderInfo();
-                        break;
-                    default:
-                        break;
-                }
+                try { lru.Get(key); Console.Write($"{key}=есть  "); }
+                catch (KeyNotFoundException) { Console.Write($"{key}=нет  "); }
             }
-
-            USER user1 = new() { Name = "Oleg", Permissions = UserPermissions.ReadWriteDeleteExecute };
-            USER user2 = new() { Name = "Vasa", Permissions = UserPermissions.Read };
-            USER user3 = new() { Name = "Gaga", Permissions = UserPermissions.ReadWriteDelete };
-            Console.WriteLine($"{user1.Name}: {user1.Permissions}, {user2.Name}: {user2.Permissions}, {user3.Name}: {user3.Permissions}");
-            user2.AddPermission(UserPermissions.Write);
-            user3.RemovePermission(UserPermissions.Delete);
-            Console.WriteLine($"{user1.Name}: {user1.Permissions}, {user2.Name}: {user2.Permissions}, {user3.Name}: {user3.Permissions}");
-
-            TextCommand com = TextCommand.Stop;
-            ExecuteCommand(com);
-            ExecuteCommand(ParseCommand("StArT"));
-
-            Notification sms = new("Hi", NotificationType.SMS, Priority.Low);
-            Notification email = Notification.CreateUrgentNotification("Important", NotificationType.Email);
-            if (sms.CanSend()) sms.Send();
-            email.Send();
-            Notification Alll = new("spam", NotificationType.ALL, Priority.Medium);
-            Notification empties = new(string.Empty, NotificationType.Push, Priority.Medium);
-            Alll.Send();
-            empties.Send();
+            Console.WriteLine();
         }
-        internal static TextCommand ParseCommand(string input)
+        private static void Main(string[] args)
         {
-            if (Enum.TryParse(input.Trim(), true, out TextCommand result)) return result;
-            return TextCommand.Unknown;
-        }
-        internal static void ExecuteCommand(TextCommand com)
-        {
-            switch (com)
-            {
-                case TextCommand.Unknown:
-                case TextCommand.Start:
-                case TextCommand.Stop:
-                case TextCommand.Pause:
-                case TextCommand.Resume:
-                    Console.WriteLine($"Выполняется команда {com}");
-                    break;
-                default:
-                    break;
-            }
-        }
-        static void Main(string[] args)
-        {
+            AnimalTest();
+            EnumeratorTest();
+            LoggerTest();
+            FIFOTest();
+            LruTest();
 
-            //TestBank();
-            //TestUser();
-            //TestRectangle();
-            //TestSimpleArray();
-            //TestSmartTimer();
-
-            TestEnums();
             Console.ReadKey();
         }
     }
