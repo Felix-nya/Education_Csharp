@@ -7,7 +7,10 @@ namespace Test
         private static void Main(string[] args)
         {
             //Tester.TestCounter();
-            Tester.TestOrderManager();
+            //Tester.TestOrderManager();
+            //Tester.TestCacheCalculator();
+            //Tester.TestAlertSystem();
+            Tester.TestBankAccount();
             Console.ReadKey();
         }
     }
