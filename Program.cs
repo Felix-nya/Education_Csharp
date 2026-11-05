@@ -10,7 +10,8 @@ namespace Test
             //Tester.TestOrderManager();
             //Tester.TestCacheCalculator();
             //Tester.TestAlertSystem();
-            Tester.TestBankAccount();
+            //Tester.TestBankAccount();
+            Tester.TestCalculator();
             Console.ReadKey();
         }
     }

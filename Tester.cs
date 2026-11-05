@@ -97,5 +97,36 @@ namespace Test
                 }
             }
         }
+
+        internal static void TestCalculator()
+        {
+            int value = 0;
+            while (value != 101)
+            {
+                Console.Write("Для выхода введите 101. Введите число: ");
+                try
+                {
+                    value = int.Parse(Console.ReadLine());
+                    Console.WriteLine($"10 : {value} = {Calculator.Divide(10, value)}");
+                    Console.WriteLine($"Квадратный корень из {value} = {Calculator.SquareRoot(value)}");
+                }
+                catch (DivisionByZeroException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                catch (NegativeRadicandException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                catch (MathOperationException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Произошла непредвиденная ошибка!");
+                }
+            }
+        }
     }
 }
