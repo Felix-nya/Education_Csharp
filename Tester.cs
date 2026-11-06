@@ -128,5 +128,41 @@ namespace Test
                 }
             }
         }
+
+        internal static void TestShapes()
+        {
+            Random random = new();
+            for (int i = 0; i < 10; i++)
+            {
+                int shapeVariant = random.Next(1, 4);
+                try
+                {
+                    try
+                    {
+                        switch (shapeVariant)
+                        {
+                            case 1:
+                                _ = new Triangle(random.Next(1, 11), random.Next(1, 11), random.Next(1, 11));
+                                break;
+                            case 2:
+                                _ = new Quadrangle(random.Next(1, 11), random.Next(1, 11), random.Next(1, 11), random.Next(1, 11));
+                                break;
+                            default:
+                                _ = new Circle(random.Next(-5, 6));
+                                break;
+                        }
+                    }
+                    catch (GeometryException e) when (e.GetType() == typeof(TriangleException) || e.GetType() == typeof(QuadrangleException))
+                    {
+                        File.AppendAllLines("D:\\polygon_errors.log", [e.Message + $" {string.Join("; ", e.Parameters)}"]);
+                        throw;
+                    }
+                }
+                catch (GeometryException e)
+                {
+                    File.AppendAllLines("D:\\all_geometry_errors.log", [e.Message + $" {string.Join("; ", e.Parameters)}"]);
+                }
+            }
+        }
     }
 }

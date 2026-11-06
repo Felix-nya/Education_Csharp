@@ -11,7 +11,8 @@ namespace Test
             //Tester.TestCacheCalculator();
             //Tester.TestAlertSystem();
             //Tester.TestBankAccount();
-            Tester.TestCalculator();
+            //Tester.TestCalculator();
+            Tester.TestShapes();
             Console.ReadKey();
         }
     }
