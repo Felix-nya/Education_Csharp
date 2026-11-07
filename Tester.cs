@@ -1,4 +1,5 @@
-﻿using Test.Classes;
+﻿using System.Reflection;
+using Test.Classes;
 
 namespace Test
 {
@@ -163,6 +164,103 @@ namespace Test
                     File.AppendAllLines("D:\\all_geometry_errors.log", [e.Message + $" {string.Join("; ", e.Parameters)}"]);
                 }
             }
+        }
+
+        internal static void TestFirstClass()
+        {
+            //FirstClass fc = new();
+            //var properties = fc.GetType().GetProperties();
+            var properties = typeof(FirstClass).GetProperties();
+            foreach (var property in properties)
+            {
+                var NameAtr = property.GetCustomAttribute<NameAttribute>();
+                if (NameAtr != null) Console.WriteLine($"{property.Name} - {NameAtr.Descr}");
+            }// !property.IsDefined(typeof(NameAttribute))
+        }
+
+        internal static void TestInt32Validate()
+        {
+            Int33 el = new(1, 5, 0, -25);
+            try
+            {
+                Int32Validate.Validate(el);
+            }
+            catch (InvalidValueException e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.CurrentValue);
+                Console.WriteLine(e.Name);
+                foreach (string str in e.ListOfExceptions) Console.WriteLine(str);
+            }
+        }
+
+        internal static void TestLinq12()
+        {
+            var arr = new int[] { 1, 3, 5, 8, 9, 1, 6, 4, 7, 8, 9, 2, 5, 2, 7, 8, 0 };
+            var arrGroup = arr
+                .GroupBy(e => e % 2 == 0 ? "Чётные" : "Нечётные")
+                .Select(g => new { g.Key, Values = g.OrderBy(e => e), summ = g.Sum() });
+            foreach (var g in arrGroup)
+            {
+                Console.Write($"{g.Key}: {string.Join(", ", g.Values)} Сумма: {g.summ}");
+                Console.WriteLine();
+            }
+        }
+
+        internal static void TestLinq3()
+        {
+            var arr = new Worker[]
+            {
+                new() {Name= "Петров", Salary = 100},
+                new() {Name= "Сидоров", Salary = 200},
+                new() {Name= "Петров", Salary = 130}
+            };
+            var pairArr = arr
+                .GroupBy(g => g.Name)
+                .Select(e => new {e.Key, summ = arr.Where(g => g.Name == e.Key).Sum(e => e.Salary)});
+            foreach (var pair in pairArr)
+            {
+                Console.WriteLine($"{pair.Key} - {pair.summ}");
+            }
+        }
+        class Worker
+        {
+            public string Name;
+            public int Salary;
+        }
+
+        internal static void TestLinq4()
+        {
+            var arr = new int[] {1, 3, 5 , 8, 9, 1, 6, 4, 7, 8, 9, 2, 5, 2, 7, 8, 0, 3, 5, 6, 4, 2, 7, 8, 9, 4, 3, 5, 6};
+            var filter = arr
+                .Where(e => arr.Count(t => t == e) == 3)
+                .Select(e => e)
+                .Distinct();
+            foreach (var e in filter) Console.WriteLine(e);
+        }
+
+        internal static void TestLinq5()
+        {
+            var arr = new string[] {"от", "Отелло", "РоТ", "КРОТОВАЯ нора", "Лиса"};
+            var sorted = arr
+                .Where(e => e.Contains("от", StringComparison.OrdinalIgnoreCase))
+                .Select(e => e)
+                .OrderBy(e => e);
+            foreach (var e in sorted) Console.WriteLine(e);
+                
+        }
+
+        internal static void TestLinq6()
+        {
+            var arr = new Stud[]
+            {
+                new() {Name = "", }
+            };
+        }
+        class Stud
+        {
+            public string Name;
+            public string SurName;
         }
     }
 }

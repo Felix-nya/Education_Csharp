@@ -12,7 +12,13 @@ namespace Test
             //Tester.TestAlertSystem();
             //Tester.TestBankAccount();
             //Tester.TestCalculator();
-            Tester.TestShapes();
+            //Tester.TestShapes();
+            //Tester.TestFirstClass();
+            //Tester.TestInt32Validate();
+            //Tester.TestLinq12();
+            //Tester.TestLinq3();
+            //Tester.TestLinq4();
+            Tester.TestLinq5();
             Console.ReadKey();
         }
     }
