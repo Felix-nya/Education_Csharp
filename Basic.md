@@ -1115,3 +1115,270 @@ thermostat.TemperatureChanged += (sender, e) =>
 // Изменение температуры вызовет событие
 thermostat.CurrentTemperature = 25.0;
 ```
+
+## Исключения (Exceptions)
+
+### Введение в исключения
+
+- Исключение - это:
+1. Механизм обработки ошибок времени выполнения.
+2. Объект, содержащий информацию об ошибке.
+3. Позволяет разделить основной код и код обработки ошибок.
+
+- Классификация ошибок в программах:
+1. Ошибки на этапе компиляции (синтаксические)
+2. Ошибки во время выполнения (исключения)
+
+### Паттерн "Try" - методов
+
+- Альтернатива исключениям для простых проверок.
+- Возвращает bool, а результат выводит через out - параметр.
+
+```csharp
+// Стандартный метод с исключением
+int number1 = int.Parse("123"); // Выбрасывает FormatException
+// Try-паттерн
+if (int.TryParse("123", out int number2))
+{
+    Console.WriteLine($"Преобразование успешно: {number2}");
+}
+else
+{
+    Console.WriteLine("Преобразование не удалось.");
+}
+```
+
+### Блоки try, catch, finally
+
+- `try` - блок, в который помещается код, способный сгенерировать исключение.
+- `catch` – блок, который перехватывает и обрабатывает исключение определенного типа
+- `finally` – блок, который выполняется всегда, независимо от того, было исключение или нет.
+
+```csharp
+try
+{
+    Console.Write("Введите число: ");
+    int number = int.Parse(Console.ReadLine());
+    Console.WriteLine($"Вы ввели: {number}");
+}
+catch (FormatException)
+{
+    Console.WriteLine("Ошибка! Введена не числовая строка.");
+}
+```
+
+```csharp
+try
+{
+    int[] numbers = { 1, 2, 3 };
+    Console.WriteLine(numbers[5]); // Выход за границы массива!
+}
+catch (IndexOutOfRangeException ex) // 'ex' - объект исключения
+{
+    Console.WriteLine($"Произошла ошибка: {ex.Message}");
+    // Выведет: "Индекс находился вне границ массива."
+}
+```
+
+### Иерархия исключений
+
+Все исключения наследуются от класса `System.Exception`
+- `SystemException` – исключения, генерируемые средой выполнения (CLR)
+- - `IndexOutOfRangeException`
+- - `NullReferenceException`
+- - `ArgumentException`
+- - `FormatException`
+
+### Множественные блоки catch
+
+```csharp
+try
+{
+    // Код, который может вызвать разные исключения
+}
+catch (DivideByZeroException)
+{
+    Console.WriteLine("Деление на ноль!");
+}
+catch (FormatException ex)
+{
+    Console.WriteLine($"Ошибка формата: {ex.Message}");
+}
+catch (Exception ex) // Самый общий тип - ловит ВСЕ исключения
+{
+    Console.WriteLine($"Неожиданная ошибка: {ex.Message}");
+}
+```
+
+### Блок finally
+
+```csharp
+FileStream fileStream = null;
+try
+{
+    fileStream = new FileStream("file.txt", FileMode.Open);
+    // Работаем с файлом...
+}
+catch (FileNotFoundException)
+{
+    Console.WriteLine("Файл не найден!");
+}
+finally
+{
+    // Этот код выполнится в любом случае
+    fileStream?.Close(); // Безопасное закрытие (если fileStream не null)
+    Console.WriteLine("Ресурс освобожден.");
+}
+```
+
+### Использование when для фильтрации исключений
+
+```csharp
+try
+{
+    int number = int.Parse("ABC"); // Вызовет FormatException
+}
+catch (FormatException ex) when (ex.Message.Contains("ABC"))
+{
+    Console.WriteLine("Ошибка формата из-за строки 'ABC'");
+}
+catch (FormatException)
+{
+    Console.WriteLine("Какая-то другая ошибка формата.");
+}
+```
+
+### Генерация исключений (throw)
+
+- Варианты действий в блоке `catch`:
+- - Генерация исключения другого типа – для передачи дополнительной информации или абстракции
+- - Повторная генерация того же исключения – для передачи информации коду выше в стеке вызовов
+- - Выход из блока `catch` без генерации – когда исключение полностью обработано и программа может продолжить нормальную работу
+
+```csharp
+internal sealed class Account
+{
+    public decimal Balance { get; private set; }
+    public static void Transfer(Account from, Account to, decimal amount)
+    {
+        if (from == null || to == null)
+        {
+            throw new ArgumentNullException("Счета не могут быть null");
+        }
+        if (amount <= 0)
+        {
+            throw new ArgumentException("Сумма перевода должна быть положительной");
+        }
+        if (from.Balance < amount)
+        {
+            throw new InvalidOperationException("Недостаточно средств для перевода");
+        }
+        from.Balance -= amount;
+        to.Balance += amount;
+    }
+}
+```
+
+```csharp
+try
+{
+    // ... какой-то код ...
+}
+catch (Exception ex)
+{
+    // Логируем ошибку
+    LogError(ex);
+    // И снова выбрасываем это же исключение для обработки выше
+    throw;
+}
+```
+
+### Реализация пользовательского исключения
+
+```csharp
+public class InvalidStudentException : Exception
+{
+    public InvalidStudentException()
+    {
+    }
+    public InvalidStudentException(string message)
+        : base(message)
+    {
+    }
+    public InvalidStudentException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+}
+```
+
+### Паттерн "Exception Builder" для сложных исключений
+
+```csharp
+public class DatabaseExceptionBuilder
+{
+    private string _message;
+    private string _connectionString;
+    private Exception _innerException;
+    public DatabaseExceptionBuilder WithMessage(string message)
+    {
+        _message = message;
+        return this;
+    }
+    public DatabaseExceptionBuilder WithConnectionString(string connectionString)
+    {
+        _connectionString = connectionString;
+        return this;
+    }
+    public DatabaseExceptionBuilder WithInnerException(Exception innerException)
+    {
+        _innerException = innerException;
+        return this;
+    }
+    public DatabaseException Build()
+    {
+        return new DatabaseException(_message, _connectionString, _innerException);
+    }
+}
+
+// Использование
+var exception = new DatabaseExceptionBuilder()
+    .WithMessage("Ошибка подключения к базе данных")
+    .WithConnectionString(connectionString)
+    .WithInnerException(sqlEx)
+    .Build();
+```
+
+### Полезные свойства экземпляра Exception
+
+- Свойства `StackTrace` и `InnerException`:
+- - `StackTrace` – строковое представление стека вызовов в момент
+возникновения исключения
+- - `InnerException` – исключение, которое стало причиной текущего исключения
+- Другие полезные свойства:
+- - `ex.TargetSite` – метод, выбросивший исключение
+- - `ex.Data` – словарь для дополнительных данных
+- - `ex.HelpLink` – ссылка на документацию
+- - `ex.HResult` – HRESULT код ошибки
+
+### Документирование исключений
+
+```csharp
+/// <summary>
+    /// Выполняет деление двух чисел.
+    /// </summary>
+    /// <param name="dividend">Делимое.</param>
+    /// <param name="divisor">Делитель.</param>
+    /// <returns>Результат деления.</returns>
+    /// <exception cref="System.ArgumentException">
+    /// Выбрасывается, когда <paramref name="divisor"/> равен нулю.
+    /// </exception>
+    public double Divide(double dividend, double divisor)
+    {
+        if (divisor == 0)
+        {
+            throw new ArgumentException("Делитель не может быть нулем.", nameof(divisor));
+        }
+        return dividend / divisor;
+    }
+```

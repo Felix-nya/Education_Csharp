@@ -5,11 +5,37 @@ namespace Test
 {
     internal static class Tester
     {
+        private static void Article(string article)
+        {
+            Console.WriteLine($"[----------* Задание: {article} *----------]");
+            Console.WriteLine();
+        }
+        private static void Endlines()
+        {
+            for (int i = 0; i < 3; i++) Console.WriteLine();
+        }
+
+        internal static void TestDelegatesAndException()
+        {
+            TestCounter();
+            TestOrderManager();
+            TestCacheCalculator();
+            TestAlertSystem();
+            TestBankAccount();
+            TestCalculator();
+            TestShapes();
+        }
+
+
         internal static void TestCounter()
         {
+            Article("Счётчик");
+
             Counter counter = new();
             counter.CountReached += OnCountReached;
             for (int i = 0; i < 10; i++) counter.Increment();
+            
+            Endlines();
         }
         private static void OnCountReached(object? sender, CountReachedEventArgs e)
         {
@@ -18,6 +44,8 @@ namespace Test
 
         internal static void TestOrderManager()
         {
+            Article("Менеджер заказов");
+
             OrderManager manager = new();
             manager.OrderPlaced += OnOrderPlaced;
             manager.OrderPlaced += (sender, e) => Console.WriteLine($"Заказ принят: [{e.DishName}] для стола [{e.TableNumber}]");
@@ -25,6 +53,8 @@ namespace Test
             manager.PlaceOrder("Рамен", 2);
             manager.OrderPlaced -= OnOrderPlaced;
             manager.PlaceOrder("Шашлык", 3);
+
+            Endlines();
         }
         private static void OnOrderPlaced(object? sender, OrderEventArgs e)
         {
@@ -33,13 +63,19 @@ namespace Test
 
         internal static void TestCacheCalculator()
         {
+            Article("Кэш калькулятор");
+
             Console.WriteLine(CacheCalculator<int>.Calculate(5, e => e * e));
             Console.WriteLine(CacheCalculator<int>.Calculate(5, e => e * e));
             Console.WriteLine(CacheCalculator<string>.Calculate("Hello", e => e + e));
+
+            Endlines();
         }
 
         internal static void TestAlertSystem()
         {
+            Article("Система оповещений");
+
             AlertSystem alertSystem = new();
             alertSystem.AlertRaised += OnInfoAlertRaised;
             alertSystem.AlertRaised += OnWarningAlertRaised;
@@ -50,6 +86,8 @@ namespace Test
             alertSystem.RaiseAlert(new(AlertLevel.Error, "Hi"));
             alertSystem.AlertRaised -= OnInfoAlertRaised;
             alertSystem.RaiseAlert(new(AlertLevel.Info, "Hi"));
+
+            Endlines();
         }
         private static void OnInfoAlertRaised(object? sender, AlertEventArgs e)
         {
@@ -81,6 +119,8 @@ namespace Test
 
         internal static void TestBankAccount()
         {
+            Article("Счёт банка");
+
             BankAccount MyBank = new() { Balance = 100 };
             decimal amount = 0;
             while (amount != 101)
@@ -97,10 +137,14 @@ namespace Test
                     Console.WriteLine($"Ошибка: Недостаточно средств на счёте. {e.Message}");
                 }
             }
+
+            Endlines();
         }
 
         internal static void TestCalculator()
         {
+            Article("Калькулятор");
+
             int value = 0;
             while (value != 101)
             {
@@ -128,10 +172,14 @@ namespace Test
                     Console.WriteLine("Произошла непредвиденная ошибка!");
                 }
             }
+
+            Endlines();
         }
 
         internal static void TestShapes()
         {
+            Article("Геометрические фигуры, исключения");
+
             Random random = new();
             for (int i = 0; i < 10; i++)
             {
@@ -164,10 +212,14 @@ namespace Test
                     File.AppendAllLines("D:\\all_geometry_errors.log", [e.Message + $" {string.Join("; ", e.Parameters)}"]);
                 }
             }
+
+            Endlines();
         }
 
         internal static void TestFirstClass()
         {
+            Article("Атрибуты, первый класс");
+
             //FirstClass fc = new();
             //var properties = fc.GetType().GetProperties();
             var properties = typeof(FirstClass).GetProperties();
@@ -176,10 +228,14 @@ namespace Test
                 var NameAtr = property.GetCustomAttribute<NameAttribute>();
                 if (NameAtr != null) Console.WriteLine($"{property.Name} - {NameAtr.Descr}");
             }// !property.IsDefined(typeof(NameAttribute))
+
+            Endlines();
         }
 
         internal static void TestInt32Validate()
         {
+            Article("Валидатор целого числа");
+
             Int33 el = new(1, 5, 0, -25);
             try
             {
@@ -192,10 +248,14 @@ namespace Test
                 Console.WriteLine(e.Name);
                 foreach (string str in e.ListOfExceptions) Console.WriteLine(str);
             }
+
+            Endlines();
         }
 
         internal static void TestLinq12()
         {
+            Article("LINQ 1-2 совмещённые");
+
             var arr = new int[] { 1, 3, 5, 8, 9, 1, 6, 4, 7, 8, 9, 2, 5, 2, 7, 8, 0 };
             var arrGroup = arr
                 .GroupBy(e => e % 2 == 0 ? "Чётные" : "Нечётные")
@@ -205,10 +265,14 @@ namespace Test
                 Console.Write($"{g.Key}: {string.Join(", ", g.Values)} Сумма: {g.summ}");
                 Console.WriteLine();
             }
+
+            Endlines();
         }
 
         internal static void TestLinq3()
         {
+            Article("LINQ 3");
+
             var arr = new Worker[]
             {
                 new() {Name= "Петров", Salary = 100},
@@ -222,6 +286,8 @@ namespace Test
             {
                 Console.WriteLine($"{pair.Key} - {pair.summ}");
             }
+
+            Endlines();
         }
         class Worker
         {
@@ -231,31 +297,36 @@ namespace Test
 
         internal static void TestLinq4()
         {
+            Article("LINQ 4");
+
             var arr = new int[] {1, 3, 5 , 8, 9, 1, 6, 4, 7, 8, 9, 2, 5, 2, 7, 8, 0, 3, 5, 6, 4, 2, 7, 8, 9, 4, 3, 5, 6};
             var filter = arr
                 .Where(e => arr.Count(t => t == e) == 3)
                 .Select(e => e)
                 .Distinct();
             foreach (var e in filter) Console.WriteLine(e);
+
+            Endlines();
         }
 
         internal static void TestLinq5()
         {
+            Article("LINQ 5");
+
             var arr = new string[] {"от", "Отелло", "РоТ", "КРОТОВАЯ нора", "Лиса"};
             var sorted = arr
                 .Where(e => e.Contains("от", StringComparison.OrdinalIgnoreCase))
                 .Select(e => e)
                 .OrderBy(e => e);
             foreach (var e in sorted) Console.WriteLine(e);
-                
+
+            Endlines();
         }
 
         internal static void TestLinq6()
         {
-            var arr = new Stud[]
-            {
-                new() {Name = "", }
-            };
+            Article("LINQ 6");
+            Endlines();
         }
         class Stud
         {
