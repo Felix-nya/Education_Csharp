@@ -15,6 +15,7 @@ namespace Test
             for (int i = 0; i < 3; i++) Console.WriteLine();
         }
 
+
         internal static void TestDelegatesAndException()
         {
             TestCounter();
@@ -25,6 +26,16 @@ namespace Test
             TestCalculator();
             TestShapes();
         }
+        internal static void TestReflectionsAttributeAndLINQ()
+        {
+            TestFirstClass();
+            TestInt32Validate();
+            TestLinq12();
+            TestLinq3();
+            TestLinq4();
+            TestLinq5();
+            TestLinq6();
+        }
 
 
         internal static void TestCounter()
@@ -34,7 +45,7 @@ namespace Test
             Counter counter = new();
             counter.CountReached += OnCountReached;
             for (int i = 0; i < 10; i++) counter.Increment();
-            
+
             Endlines();
         }
         private static void OnCountReached(object? sender, CountReachedEventArgs e)
@@ -128,8 +139,12 @@ namespace Test
                 Console.Write("Для выхода введите 101. Введите сумму для снятия: ");
                 try
                 {
-                    amount = decimal.Parse(Console.ReadLine());
-                    MyBank.Withdraw(amount);
+                    string? input = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(input))
+                    {
+                        amount = decimal.Parse(input);
+                        MyBank.Withdraw(amount);
+                    }
                     Console.WriteLine($"Операция успешна. Новый баланс: {MyBank.Balance}");
                 }
                 catch (InsufficientFundsException e)
@@ -151,9 +166,13 @@ namespace Test
                 Console.Write("Для выхода введите 101. Введите число: ");
                 try
                 {
-                    value = int.Parse(Console.ReadLine());
-                    Console.WriteLine($"10 : {value} = {Calculator.Divide(10, value)}");
-                    Console.WriteLine($"Квадратный корень из {value} = {Calculator.SquareRoot(value)}");
+                    string? input = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(input))
+                    {
+                        value = int.Parse(input);
+                        Console.WriteLine($"10 : {value} = {Calculator.Divide(10, value)}");
+                        Console.WriteLine($"Квадратный корень из {value} = {Calculator.SquareRoot(value)}");
+                    }
                 }
                 catch (DivisionByZeroException e)
                 {
@@ -203,12 +222,14 @@ namespace Test
                     }
                     catch (GeometryException e) when (e.GetType() == typeof(TriangleException) || e.GetType() == typeof(QuadrangleException))
                     {
+                        Console.WriteLine(e.Message + $" {string.Join("; ", e.Parameters)}");
                         File.AppendAllLines("D:\\polygon_errors.log", [e.Message + $" {string.Join("; ", e.Parameters)}"]);
                         throw;
                     }
                 }
                 catch (GeometryException e)
                 {
+                    Console.WriteLine(e.Message + $" {string.Join("; ", e.Parameters)}");
                     File.AppendAllLines("D:\\all_geometry_errors.log", [e.Message + $" {string.Join("; ", e.Parameters)}"]);
                 }
             }
@@ -279,9 +300,15 @@ namespace Test
                 new() {Name= "Сидоров", Salary = 200},
                 new() {Name= "Петров", Salary = 130}
             };
+            foreach (var pair in arr)
+            {
+                Console.WriteLine($"{pair.Name} - {pair.Salary}");
+            }
+            Console.WriteLine();
+
             var pairArr = arr
                 .GroupBy(g => g.Name)
-                .Select(e => new {e.Key, summ = arr.Where(g => g.Name == e.Key).Sum(e => e.Salary)});
+                .Select(e => new { e.Key, summ = arr.Where(g => g.Name == e.Key).Sum(e => e.Salary) });
             foreach (var pair in pairArr)
             {
                 Console.WriteLine($"{pair.Key} - {pair.summ}");
@@ -291,7 +318,7 @@ namespace Test
         }
         class Worker
         {
-            public string Name;
+            public string Name = string.Empty;
             public int Salary;
         }
 
@@ -299,7 +326,10 @@ namespace Test
         {
             Article("LINQ 4");
 
-            var arr = new int[] {1, 3, 5 , 8, 9, 1, 6, 4, 7, 8, 9, 2, 5, 2, 7, 8, 0, 3, 5, 6, 4, 2, 7, 8, 9, 4, 3, 5, 6};
+            var arr = new int[] { 1, 3, 5, 8, 9, 1, 6, 4, 7, 8, 9, 2, 5, 2, 7, 8, 0, 3, 5, 6, 4, 2, 7, 8, 9, 4, 3, 5, 6 };
+            foreach (var e in arr) Console.Write($"{e} ");
+            Console.WriteLine();
+
             var filter = arr
                 .Where(e => arr.Count(t => t == e) == 3)
                 .Select(e => e)
@@ -313,7 +343,10 @@ namespace Test
         {
             Article("LINQ 5");
 
-            var arr = new string[] {"от", "Отелло", "РоТ", "КРОТОВАЯ нора", "Лиса"};
+            var arr = new string[] { "от", "Отелло", "РоТ", "КРОТОВАЯ нора", "Лиса" };
+            foreach (var e in arr) Console.WriteLine(e);
+            Console.WriteLine();
+
             var sorted = arr
                 .Where(e => e.Contains("от", StringComparison.OrdinalIgnoreCase))
                 .Select(e => e)
@@ -326,12 +359,59 @@ namespace Test
         internal static void TestLinq6()
         {
             Article("LINQ 6");
+
+            List<Stud> studs = [new() { Name = "Олег", SurName = "Шардин"},
+                                new() { Name = "Олег", SurName = "Шишкин"},
+                                new() { Name = "Олег", SurName = "Крутов"},
+                                new() { Name = "Алексей", SurName = "Квадратный"},
+                                new() { Name = "Алеша", SurName = "Попович"},
+                                new() { Name = "Собака", SurName = "Тугарин"}];
+            foreach (var pair in studs)
+            {
+                Console.WriteLine($"{pair.Name} - {pair.SurName}");
+            }
+            Console.WriteLine();
+
+            var sortedStuds = studs
+                .OrderBy(e => e.Name)
+                .ThenByDescending(e => e.SurName);
+            foreach (var pair in sortedStuds)
+            {
+                Console.WriteLine($"{pair.Name} - {pair.SurName}");
+            }
+
             Endlines();
         }
         class Stud
         {
-            public string Name;
-            public string SurName;
+            public string Name = string.Empty;
+            public string SurName = string.Empty;
+        }
+
+
+        internal static void TestOlegSomeFunc()
+        {
+            List<ConsoleColor> colors = [ ConsoleColor.Black, ConsoleColor.DarkBlue,
+            ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkRed, ConsoleColor.DarkMagenta,
+            ConsoleColor.DarkYellow, ConsoleColor.DarkGray, ConsoleColor.Blue, ConsoleColor.Cyan,
+            ConsoleColor.Gray, ConsoleColor.Green, ConsoleColor.Magenta, ConsoleColor.Red,
+            ConsoleColor.White, ConsoleColor.Yellow];
+            Random random = new();
+            ConsoleKeyInfo press = new();
+
+            while (press.Key != ConsoleKey.Enter)
+            {
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Clear();
+
+                Console.BackgroundColor = colors[random.Next(0, colors.Count)];
+                Console.ForegroundColor = colors[random.Next(0, colors.Count)];
+                Console.WriteLine("1234567890 qwerty QWERTY -_=+~`/?|}{][");
+
+                press = Console.ReadKey();
+            }
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }

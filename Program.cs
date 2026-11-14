@@ -6,8 +6,9 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            Console.ReadKey();
-
+            //Tester.TestDelegatesAndException();
+            //Tester.TestReflectionsAttributeAndLINQ();
+            Tester.TestOlegSomeFunc();
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Test.Classes
         internal void Withdraw(decimal amount)
         {
             if (Balance < amount) throw new InsufficientFundsException($"Запрашиваемая сумма: {amount}, Доступно: {Balance}");
+            if (amount < 0) throw new InsufficientFundsException($"Запрашиваемая сумма отрицательная: {amount}, Доступно: {Balance}");
             Balance -= amount;
         }
     }
