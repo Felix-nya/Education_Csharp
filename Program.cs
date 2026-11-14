@@ -6,8 +6,8 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            
             Console.ReadKey();
+
         }
     }
 }

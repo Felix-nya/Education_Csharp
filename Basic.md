@@ -1382,3 +1382,349 @@ var exception = new DatabaseExceptionBuilder()
         return dividend / divisor;
     }
 ```
+
+## Отражение (Reflection)
+
+### Отражение
+
+- Отражение (`Reflection`) - это механизм в .NET, который позволяет получать метаданные о типах, сборках и модулях и т.п. во время выполнения программы.
+- Метаданные - это информация о типаз: их имя, методы, свойства, поля, базовые классы, атрибуты и т.д.
+
+- Зачем нужно Отражение?
+1. Динамический анализ типов: Поиск и изучение членов класса.
+2. Позднее связывание (`LateBinding`): Вызов методов или доступ к свойствам, тип которых неизвестен на этапе компиляции.
+3. Создание экземпляров "на лету": Создание объектов по имени типа.
+4. Сериализация/Десериализация: Преобразование объектов в формат (JSON, XML) и обратно.
+5. Система плагинов: Динамическая загрузка и использование библиотек.
+6. Фреймворки для тестирования (например, NUnit, xUnit) используют Reflection для поиска тестовых методов.
+7. ORMs (например, Entity Framework) используют Reflection для маппинга классов на таблицы БД.
+
+### Ядро: Class System.Type
+
+- Class System.Type - это отправная точка для работы с Reflection
+- Объект Type предоставляет всю информацию о типе:
+1. Имя
+2. Пространство имён
+3. Является ли он абстрактным, публичным
+4. Список его методов
+5. Список свойств
+6. Список полей
+7. Список событий
+8. и многое другое
+
+- Получается тремя способами:
+
+- `typeof()` - используется, когда тип известен на этапе компиляции
+```csharp
+Type stringType = typeof(string);
+Type intType = typeof(int);
+```
+
+- `GetType()` - вызывается у экземляра объекта. Тип может быть неизвестен на этапе компиляции.
+```csharp
+string name = "Alice";
+Type runtimeType = name.GetType(); // Вернет System.String
+object obj = 42;
+Type objType = obj.GetType(); // Вернет System.Int32
+```
+
+- `Type.GetType()` - принимает строку с полным именем типа, удобно для динамической загрузки.
+```csharp
+// Получение типа по полному имени
+Type dateTimeType = Type.GetType("System.DateTime");
+// Важно: для типов не из mscorlib нужно указать Assembly Qualified Name
+Type myClassType = Type.GetType("MyNamespace.MyClass, MyAssembly");
+```
+
+### Метаданные на примере
+
+```csharp
+Type type = typeof(StringBuilder);
+
+Console.WriteLine($"FullName: {type.FullName}");
+Console.WriteLine($"Name: {type.Name}");
+Console.WriteLine($"Namespace: {type.Namespace}");
+Console.WriteLine($"IsClass: {type.IsClass}");
+Console.WriteLine($"IsPublic: {type.IsPublic}");
+Console.WriteLine($"IsAbstract: {type.IsAbstract}");
+Console.WriteLine($"BaseType: {type.BaseType}"); // System.Object
+```
+
+```csharp
+Type mathType = typeof(Math);
+MethodInfo[] methods = mathType.GetMethods();
+foreach (MethodInfo method in methods)
+{
+    Console.WriteLine($"Method: {method.Name}");
+    Console.WriteLine($"  Return Type: {method.ReturnType.Name}");
+    Console.WriteLine($"  IsPublic: {method.IsPublic}");
+    // Получение параметров метода
+    ParameterInfo[] parameters = method.GetParameters();
+    foreach (ParameterInfo param in parameters)
+    {
+        Console.WriteLine($"    Param: {param.ParameterType.Name} {param.Name}");
+    }
+} //Аналогично с GetProperties(), GetFields()
+```
+
+### Привязка (Binding) и флаги BindingFlags
+
+- BindingFlags определяют, какие члены будут возвращены при поиске:
+- - Public, NonPublic–уровень доступа
+- - Instance, Static–тип члена
+- - DeclaredOnly–только члены, объявленные в самом типе (исключает унаследованные)
+
+```csharp
+Typetype= typeof(MyType);
+// Пример: получить все приватные статические поля
+FieldInfo[] privateStaticFields = type.GetFields(
+    BindingFlags.NonPublic| BindingFlags.Static
+);
+
+// Пример: получить все публичные и непубличные методы экземпляра
+MethodInfo[] allInstanceMethods = type.GetMethods(
+    BindingFlags.Public| BindingFlags.NonPublic| BindingFlags.Instance
+);
+```
+
+### Позднее связывание (Late Binding)
+
+- Позднее связывание – это вызов методов или доступ к членам объекта, тип которого неизвестен на этапе компиляции
+
+```csharp
+class Program
+{
+    staticvoidMain()
+    {
+        // Создаем экземпляр Calculator
+        Calculator calc = newCalculator();
+        // Получаем его тип
+        TypecalcType= calc.GetType();
+        // Получаем информацию о методе "Add"
+        MethodInfo addMethod= calcType.GetMethod("Add");
+        // Вызываем метод для экземпляра calcс массивом аргументов
+        objectresult = addMethod.Invoke(calc, newobject[] { 5, 3 });
+        Console.WriteLine($"Result of Add: {result}"); // 8
+    }
+}
+
+
+using System.Reflection;
+public class Calculator
+{
+    publicintAdd(inta, intb)
+    {
+        return a + b;
+    }
+    privatestringRepeatText(stringtext, inttimes)
+    {
+    return string.Concat(System.Linq.Enumerable.Repeat(text, times));
+    }
+}
+```
+
+### Создание экземляров Activator.CreateInstance
+
+- Статический класс `Activator` предоставляет методы для динамического создания экземпляров типов
+
+- Создание с вызовом конструктора по умолчанию:
+```csharp
+Type stringBuilderType = typeof(StringBuilder);
+StringBuilder sbInstance = (StringBuilder)Activator.CreateInstance(stringBuilderType);
+sbInstance.Append("Hello, Reflection!");
+```
+
+- Создание с передачей аргументов:
+```csharp
+// Предположим, есть класс Person с конструктором Person(string name, int age)
+Type personType = typeof(Person);
+object personInstance = Activator.CreateInstance(personType, "John", 30);
+```
+
+### Работа со сборками
+
+- Сборка – это скомпилированный код (EXE или DLL), который развертывается как единое целое
+- Класс System.Reflection.Assembly представляет сборку
+
+```csharp
+// Загрузка сборки по имени
+Assembly myAssembly = Assembly.Load("MyLibrary");
+
+// Загрузка из конкретного файла
+Assembly pluginAssembly = Assembly.LoadFrom(@"C:\Plugins\MyPlugin.dll");
+
+
+Assembly currentAssembly = Assembly.GetExecutingAssembly(); // Текущая сборка
+
+Type[] allTypes = currentAssembly.GetTypes();
+
+foreach (Type type in allTypes)
+{
+    Console.WriteLine($"Type: {type.FullName}");
+    // Можно исследовать атрибуты каждого типа
+    object[] attributes = type.GetCustomAttributes(false);
+    foreach (object attr in attributes)
+    {
+        Console.WriteLine($"  Attribute: {attr.GetType().Name}");
+    }
+}
+```
+
+### Система плагинов
+
+```csharp
+// 1-й проект. Определяем общий интерфейс для плагинов (dll)
+public interface IPlugin
+{
+    string Name { get; }
+    void Execute();
+}
+
+// 2-й проект. Плагин в отдельной библиотеке (dll)
+public class HelloPlugin : IPlugin
+{
+    public string Name => "Hello Plugin";
+    public void Execute() => Console.WriteLine("Hello from plugin!");
+}
+
+// 3-й проект. Основное приложение загружает и использует плагины
+Assembly pluginAssembly = Assembly.LoadFrom("HelloPlugin.dll");
+foreach (Type type in pluginAssembly.GetTypes())
+{
+    // Проверяем, реализует ли тип интерфейс IPlugin и не является ли абстрактным
+    if(typeof(IPlugin).IsAssignableFrom(type) && !type.IsAbstract)
+    {
+        // Создаем экземпляр плагина
+        IPlugin plugin = (IPlugin)Activator.CreateInstance(type)!;
+        Console.WriteLine($"Loaded plugin: {plugin.Name}");
+        plugin.Execute();
+    }
+}
+```
+
+### dynamic
+
+- Ключевое слово `dynamic` позволяет обойти статическую проверку типов
+- Вызовы разрешаются во время выполнения
+
+- Плюсы:
+- - Более чистый синтаксис
+- - Можно обойтись без Invoke
+
+- Минусы:
+- - Нет проверки типов на этапе компиляции
+- - Ошибки выявятся только во время выполнения
+- - Все еще может быть медленнее статического вызова
+
+```csharp
+// Пример с Calculator
+dynamic calc = new Calculator();
+// Вызов разрешается в runtime
+int result = calc.Add(5, 3);
+Console.WriteLine(result); // 8
+```
+
+- Также есть деревья выражений - максимальная производительность - вызов компилируем "на лету"
+
+## Пользовательские атрибуты Custom Attributes
+
+### Определение
+
+- Определение: это специализированный класс, наследующий от `System.Attribute`, который позволяет добавлять пользовательские метаданные к сборкам, типам, членам классов и другим сущностям
+- Аналогия: Это как наклейка с дополнительной инструкцией, которую вы можете наклеить на часть вашего кода
+- Механизм: Эти метаданные компилируются в сборку и могут быть прочитаны во время выполнения с помощью Reflection
+
+### Проктирование класса атрибута
+
+- Класс должен быть публичным и явно наследовать от `System.Attribute`
+- Имя класса по соглашению заканчивается на Attribute
+- Атрибут можно настроить с помощью `AttributeUsageAttribute`, чтобы ограничить, к каким элементам его можно применять
+
+```csharp
+[AttributeUsage(AttributeTargets.Class |
+                AttributeTargets.Method,
+                Inherited = false,
+                AllowMultiple = true)]
+public class CustomAttribute : Attribute
+{
+}
+```
+
+### Пример Attribute DeveloperInfo
+
+```csharp
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+public class DeveloperInfoAttribute: Attribute
+{
+    public string DeveloperName{ get; }
+    public string DateCreated{ get; }
+    public DeveloperInfoAttribute(string developerName, string dateCreated)
+    {
+        DeveloperName= developerName;
+        DateCreated= dateCreated;
+    }
+}
+```
+
+```csharp
+[DeveloperInfo("Анна Петрова", "2023-10-25")]
+public class PaymentProcessor
+{
+    [DeveloperInfo("Иван Сидоров", "2023-10-26")]
+    public void ProcessTransaction()
+    {
+        // Код метода
+    }
+}
+```
+
+```csharp
+// Проверяем, есть ли атрибут у класса
+if (typeof(PaymentProcessor).IsDefined(typeof(DeveloperInfoAttribute)))
+{
+    // Извлекаем конкретный атрибут
+    var classAttribute= typeof(PaymentProcessor)
+                            .GetCustomAttribute<DeveloperInfoAttribute>();
+
+    Console.WriteLine($"Класс разработан: {classAttribute.DeveloperName}");
+    Console.WriteLine($"Дата создания: {classAttribute.DateCreated}");
+}
+```
+
+### Современные особенности
+
+- `nameof` и `caller`
+```csharp
+[AttributeUsage(AttributeTargets.Method)]
+public class LoggingAttribute: Attribute
+{
+    public string MethodName{ get; }
+    // Использование nameofдля безопасности типов
+    public LoggingAttribute(string methodName)
+    {
+        MethodName= methodName;
+    }
+}
+
+// Применение с nameof
+[Logging(nameof(MyMethod))]
+publicvoidMyMethod()
+{
+}
+```
+
+- `in`, `ref`, `readonly`
+- - Атрибуты можно применять к параметрам, в том числе с модификаторами in и ref
+```csharp
+public class ValidateInputAttribute: Attribute
+{
+}
+
+public class DataProcessor
+{
+    public void Process([ValidateInput] inintimportantValue)
+    {
+        // Код метода
+    }
+}
+```
