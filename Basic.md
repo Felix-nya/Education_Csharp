@@ -1728,3 +1728,360 @@ public class DataProcessor
     }
 }
 ```
+
+## LINQ
+
+### Определение
+
+- `LINQ` (Language Integrated Query)– это набор технологий, интегрирующих возможности запросов непосредственно в язык C#
+- Цель: Единый, типобезопасный, декларативный синтаксис для запросов к:
+- - Коллекциям объектов (LINQ to Objects)
+- - Базам данных (LINQ toEntities через EF Core)
+- - XML (LINQ toXML)
+- - И многому другому
+
+- Архитектура `LINQ`
+1. Синтаксис С# - Quary Syntax / Method Syntax
+2. Операторы запросов - Where, Select, OrderBy
+3. Поставщики LINQ
+4. Источники данных
+
+### Два синтаксиса LINQ
+
+#### Quary Syntax
+
+- Синтаксис запросов (Query Syntax) - декларативный, похож на SQL
+- Query Syntax: читаемее для сложных `join` и `group by`, знаком SQL-программистам
+
+```csharp
+// Query Syntax
+var query = from product in products
+            where product.Price > 100
+            select product.Name;
+```
+
+#### Method Syntax
+
+- Синтаксис методов (Method Syntax) - императивный, основан на методах расширения и лямбдах
+- Method Syntax: более гибкий, позволяет использовать любые методы расширения, является основным в современном C#-сообществе. Компилятор преобразует `Query Syntax` в `Method Syntax`
+
+```csharp
+// Method Syntax
+var query = products
+            .Where(product => product.Price > 100)
+            .Select(product => product.Name);
+```
+
+#### Примеры синтаксисов
+
+```csharp
+class Product
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string Category { get; set; }
+}
+List<Product> products = new List<Product>
+{
+    new Product{ Name = "Laptop", Price = 1200, Category = "Electronics"},
+    new Product{ Name = "Bread", Price = 2, Category = "Food"},
+    new Product{ Name = "Smartphone", Price = 800, Category = "Electronics"}
+};
+
+// Получить имена всех электронных товаров
+IEnumerable<string> electronicProducts =
+    from product in products
+    where product.Category == "Electronics"
+    select product.Name;
+
+foreach (string name in electronicProducts)
+{
+    Console.WriteLine(name);
+}
+// Вывод:
+// Laptop
+// Smartphone
+
+// Получить имена всех электронных товаров
+IEnumerable<string> electronicProducts = products
+    .Where(product => product.Category== "Electronics")
+    .Select(product => product.Name);
+foreach(string name in electronicProducts)
+{
+    Console.WriteLine(name);
+}
+// Вывод:
+// Laptop
+// Smartphone
+```
+
+### Стандартные операторы запросов
+
+#### Фильтрация
+
+- Операторы фильтрации:
+- `Where`: возвращает элементы, удовлетворяющие условию
+- `OfType<TResult>`: выбирает элементы, которые можно привести к типу TResult
+
+```csharp
+var numbers = new List<object> { 1, "two", 3, "four", 5 };
+var intNumbers= numbers.OfType<int>(); // [1, 3, 5]
+
+// Where с индексом
+string[] fruits = { "apple", "banana", "mango", "orange"};
+var shortFruits= fruits.Where((fruit, index) => fruit.Length< index + 5); // ["apple"]
+
+// Фильтрация по свойству
+var expensiveProducts = products.Where(p => p.Price> 1000);
+
+// Комбинация условий
+var specificProducts= products.Where(p => p.Price> 500 && p.Category == "Electronics");
+```
+
+#### Проекция
+
+- Select: преобразует каждый элемент
+- SelectMany: "уплощает" последовательности
+
+```csharp
+// Select: проецируем в анонимный тип
+var productInfos = products.Select(p => new { p.Name, IsExpensive = p.Price > 100 });
+// Проекция в анонимный тип (только имя и цену)
+var productNamesAndPrices = products.Select(p => new { p.Name, p.Price });
+// Проекция с вычислением
+var productInfos = products.Select(p => $"{p.Name} costs {p.Price:C}");
+// Проекция с индексом
+var indexedProducts = products.Select((p, index) => new { Index = index, p.Name });
+// Проекция в другой тип
+List<string> justNames = products.Select(p => p.Name).ToList();
+
+// SelectMany: все телефоны всех клиентов
+class Customer { public List<string> Phones { get; set; } }
+List<Customer> customers = ...;
+var allPhones = customers.SelectMany(customer => customer.Phones);
+```
+
+#### Where + Select
+
+- Операторы LINQ комбинируются в цепочки (`pipeline`)
+- Порядок операций: фильтрация -> проекция
+
+```csharp
+// Цепочка методов: сначала фильтруем, затем проецируем
+var result = products
+    .Where(p => p.Category== "Books")
+    .Select(p => new{ p.Name, DiscountedPrice = p.Price* 0.9m });
+
+// Синтаксис запросов
+var resultQuerySyntax =
+    from p in products
+    where p.Category== "Books"
+    select new { p.Name , DiscountedPrice = p.Price* 0.9m };
+
+foreach(var item in result)
+{
+    Console.WriteLine($"{item.Name}: {item.DiscountedPrice}");
+}
+```
+
+#### Сортировка
+
+- `OrderBy` / `OrderByDescending`: первичный критерий сортировки
+- `ThenBy` / `ThenByDescending`: вторичные критерии
+- `Reverse`: обратный порядок
+
+```csharp
+var sortedProducts = products
+    .OrderBy(p => p.Category)
+    .ThenByDescending(p => p.Price);
+
+// Аналог в Query Syntax
+var sortedProducts =
+    from p in products
+    orderby p.Category, p.Price descending
+    select p;
+```
+
+#### Группировка
+
+- Оператор `GroupBy`: Группирует элементы по ключу
+- productsByCategory: IEnumerable<IGrouping<string, Product>>
+IGrouping<string, Product> –это группа, у которой:
+    Key –это название категории (string)
+    Сама группа –это последовательностьтоваровIEnumerable<Product>
+
+```csharp
+// Method Syntax
+var productsByCategory= products.GroupBy(p => p.Category);
+
+// Query Syntax
+var productsByCategory=
+    from p in products
+    group p by p.Categoryintog
+    select new{ Category = g.Key, Products = g };
+
+foreach(var group in productsByCategory)
+{
+    Console.WriteLine($"Category: {group.Category}");
+
+    foreach(var product in group.Products)
+        Console.WriteLine($" -{product.Name}");
+}
+```
+
+```csharp
+// Группировка с немедленной проекцией
+var categoryStats = products
+    .GroupBy(p => p.Category)
+    .Select(g => new
+    {
+        Category = g.Key,
+        ProductCount= g.Count(),
+        AveragePrice= g.Average(p => p.Price),
+        MostExpensive= g.Max(p => p.Price)
+    });
+
+foreach(var stat in categoryStats)
+{
+    Console.WriteLine(
+        $"Category: {stat.Category}, "+
+        $"Count: {stat.ProductCount}, "+
+        $"Avg: {stat.AveragePrice:C}, "+
+        $"Max: {stat.MostExpensive:C}"
+    );
+}
+```
+
+#### Соединения
+
+- Оператор `Join`: выполняет внутреннее соединение двух последовательностей по ключу
+
+```csharp
+var productWithCategory = products.Join(categories,
+    p => p.CategoryId,        // внешний ключ
+    c => c.Id,                // первичный ключ
+    (p, c) => new{ ProductName = p.Name, CategoryName= c.Name});
+
+// Query Syntax
+var productWithCategory=
+    from p in products
+    join c in categories on p.CategoryId equals c.Id
+    select new{ p.Name, c.Name};
+```
+
+#### Агрегатные функции
+
+- `Count` / `LongCount`: количество элементов
+- `Min` / `Max`: минимальное/максимальное значение
+- `Sum` / `Average`: сумма/среднее арифметическое
+- `Aggregate`: пользовательская агрегация
+
+```csharp
+int[] numbers = { 1, 2, 3, 4, 5 };
+int count = numbers.Count(); // 5
+int max = numbers.Max(); // 5
+int sum = numbers.Sum(); // 15
+double average = numbers.Average(); // 3
+
+// Product of all numbers
+int product = numbers.Aggregate(1, (acc, val) => acc * val); // 120
+```
+
+#### Кванторы
+
+- `Any`: проверяет, существует ли хотя бы один элемент, удовлетворяющий условию.
+- `All`: проверяет, что все элементы удовлетворяют условию
+- `Contains`: проверяет, содержит ли последовательность указанный элемент
+
+```csharp
+List<int> numbers = newList<int> { 1, 2, 3, 4, 5 };
+
+bool allPositive= numbers.All(n => n > 0); // true
+bool anyNegative= numbers.Any(n => n < 0); // false
+bool anyElements = numbers.Any(); // true (проверка на пустоту)
+bool containsThree= numbers.Contains(3); // true
+bool containsTen= numbers.Contains(10); // false
+
+// Для своих типов нужно реализовать IEqualityComparer или использовать перегрузку
+List<Product> products = GetProducts();
+var specialProduct = newProduct { Name = "Laptop"};
+bool containsLaptop = products.Contains(specialProduct); // Сравнит по ссылке!
+// Лучше: products.Any(p => p.Name== "Laptop");
+```
+
+#### Разбиение (Paging)
+
+- `Skip`: пропускает заданное число элементов
+- `Take`: выбирает заданное число элементов
+- `SkipWhile` / `TakeWhile`: пропускает/берет элементы, пока условие истинно
+
+```csharp
+int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+var page2 = numbers.Skip(2).Take(3); // [3, 4, 5]
+
+// Пропустить все элементы, пока не встретится число >= 5
+var skipped = numbers.SkipWhile(n => n < 5); // [5, 6, 7, 8, 9]
+```
+
+#### Получение элементов
+
+- `First` / `FirstOrDefault`: первый элемент
+- `Last` / `LastOrDefault`: последний элемент
+- `Single` / `SingleOrDefault`: единственный элемент
+- `ElementAt` / `ElementAtOrDefault`: элемент по индексу
+
+```csharp
+List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+List<int> emptyList = newList<int>();
+List<int> singleElementList = newList<int> { 42 };
+
+int first = numbers.First(); // 1
+int firstEven= numbers.First(n => n % 2 == 0); // 2
+
+// FirstOrDefaultне выбрасывает исключение на пустой коллекции
+int firstOrDefault= emptyList.FirstOrDefault(); // 0 
+(default(int))
+// empty.First() -> InvalidOperationException
+int firstEvenOrDefault = numbers.FirstOrDefault(n => n > 10); // 0
+
+// Single -ожидает ровно один элемент
+int single = singleElementList.Single(); // 42
+// numbers.Single(); // Выбросит InvalidOperationException
+
+// ElementAt
+int third = numbers.ElementAt(2); // 3
+int tenthOrDefault= numbers.ElementAtOrDefault(9); // 0
+```
+
+#### Множества
+
+- `Distinct`: удаляет дубликаты
+- `Union`: объединение двух множеств
+- `Intersect`: пересечение двух множеств
+- `Except`: разность двух множеств
+
+```csharp
+int[] numbers1 = { 1, 2, 2, 3 };
+int[] numbers2 = { 2, 3, 4, 5 };
+
+var distinct = numbers1.Distinct(); // [1, 2, 3]
+var union = numbers1.Union(numbers2); // [1, 2, 3, 4, 5]
+var intersect = numbers1.Intersect(numbers2); // [2, 3]
+var except = numbers1.Except(numbers2); // [1]
+```
+
+#### Конкатенация и равенство
+
+- `Concat`: простая конкатенация двух последовательностей (в отличие от `Union`, дубликаты сохраняются)
+- `SequenceEqual`: проверяет две последовательности на идентичность (порядок и элементы)
+
+```csharp
+int[] first = { 1, 2, 3 };
+int[] second = { 3, 4, 5 };
+var concat = first.Concat(second); // [1, 2, 3, 3, 4, 5]
+
+int[] seq1 = { 1, 2, 3 };
+int[] seq2 = { 1, 2, 3 };
+bool areEqual = seq1.SequenceEqual(seq2); // true
+```
+
