@@ -6,9 +6,9 @@ namespace Test
     {
         private static void Main(string[] args)
         {
-            //Tester.TestDelegatesAndException();
+            Tester.TestDelegatesAndException();
             //Tester.TestReflectionsAttributeAndLINQ();
-            Tester.TestOlegSomeFunc();
+            //Tester.TestOlegSomeFunc();
         }
     }
 }

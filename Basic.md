@@ -1028,15 +1028,15 @@ foreach (ProcessHandler singleHandlerinhandler.GetInvocationList())
 ```csharp
 public class Button
 {
-    publiceventEventHandler? Click;
+    public event EventHandler? Click;
 }
 // На самом деле под капотом это:
 public class Button
 {
     // Защищенное поле для хранения подписчиков
-    privateEventHandler? _click;
+    private EventHandler? _click;
     // Событие -обертка над полем
-    publiceventEventHandler? Click
+    public event EventHandler? Click
     {
         add { _click += value; } // Аксессор добавления
         remove { _click -= value; } // Аксессор удаления
@@ -1044,7 +1044,7 @@ public class Button
 }
 ```
 
-### Паттерн для созданиясобытий в .NET
+### Паттерн для создания событий в .NET
 
 1. Тип делегата для события:
 `void ИмяСобытияHandler(object sender, EventArgs e)`
@@ -1065,9 +1065,9 @@ public class Button
 ```csharp
 public class TemperatureChangedEventArgs : EventArgs
 {
-    public doubleOldTemperature { get; }
-    public doubleNewTemperature { get; }
-    public TemperatureChangedEventArgs(doubleoldTemp, doublenewTemp)
+    public double OldTemperature { get; }
+    public double NewTemperature { get; }
+    public TemperatureChangedEventArgs(double oldTemp, double newTemp)
     {
         OldTemperature = oldTemp;
         NewTemperature = newTemp;

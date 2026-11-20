@@ -391,27 +391,29 @@ namespace Test
 
         internal static void TestOlegSomeFunc()
         {
-            List<ConsoleColor> colors = [ ConsoleColor.Black, ConsoleColor.DarkBlue,
-            ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkRed, ConsoleColor.DarkMagenta,
-            ConsoleColor.DarkYellow, ConsoleColor.DarkGray, ConsoleColor.Blue, ConsoleColor.Cyan,
-            ConsoleColor.Gray, ConsoleColor.Green, ConsoleColor.Magenta, ConsoleColor.Red,
-            ConsoleColor.White, ConsoleColor.Yellow];
-            Random random = new();
-            ConsoleKeyInfo press = new();
+            //List<ConsoleColor> colors = [ ConsoleColor.Black, ConsoleColor.DarkBlue,
+            //ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkRed, ConsoleColor.DarkMagenta,
+            //ConsoleColor.DarkYellow, ConsoleColor.DarkGray, ConsoleColor.Blue, ConsoleColor.Cyan,
+            //ConsoleColor.Gray, ConsoleColor.Green, ConsoleColor.Magenta, ConsoleColor.Red,
+            //ConsoleColor.White, ConsoleColor.Yellow];
+            //Random random = new();
+            //ConsoleKeyInfo press = new();
 
-            while (press.Key != ConsoleKey.Enter)
-            {
-                Console.BackgroundColor = ConsoleColor.Black;
-                Console.Clear();
+            //while (press.Key != ConsoleKey.Enter)
+            //{
+            //    Console.BackgroundColor = ConsoleColor.Black;
+            //    Console.Clear();
 
-                Console.BackgroundColor = colors[random.Next(0, colors.Count)];
-                Console.ForegroundColor = colors[random.Next(0, colors.Count)];
-                Console.WriteLine("1234567890 qwerty QWERTY -_=+~`/?|}{][");
+            //    Console.BackgroundColor = colors[random.Next(0, colors.Count)];
+            //    Console.ForegroundColor = colors[random.Next(0, colors.Count)];
+            //    Console.WriteLine("1234567890 qwerty QWERTY -_=+~`/?|}{][");
 
-                press = Console.ReadKey();
-            }
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.White;
+            //    press = Console.ReadKey();
+            //}
+            //Console.BackgroundColor = ConsoleColor.Black;
+            //Console.ForegroundColor = ConsoleColor.White;
+
+
         }
     }
 }
